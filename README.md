@@ -1,6 +1,7 @@
-# discord bot boilerplate
+# Hera
 
-A simple TypeScript boilerplate for a Discord bot.
+![Hera](https://raw.githubusercontent.com/SeqSEE/Hera/master/defaultIcon.png)
+Hera is the goddess of mothers, marriage and family – she is here to offer support.
 
 ### Prerequisites
 
@@ -9,16 +10,14 @@ A simple TypeScript boilerplate for a Discord bot.
 
 ### Setup
 
-- [Use this repo as a template](https://github.com/SeqSEE/discord-bot-boilerplate/generate)
-
 ```
-git clone https://github.com/YOUR-USERNAME/repository-name.git
+git clone https://github.com/SeqSEE/Hera
 ```
 
 - install the dependencies
 
 ```
-cd discord-bot-boilerplate
+cd Hera
 ```
 
 ```
