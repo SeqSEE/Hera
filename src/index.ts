@@ -58,12 +58,45 @@ let start = async (disabled: string[], admins: string[]) => {
             process.env.DEFAULT_CHAN as string
           )) as TextChannel)
         : null;
-    if (chan)
-      chan.send(
-        `Awww comeon, I wanna sleep for just a bit more it is only ${Math.floor(
-          Date.now() / 1000
-        )}`
-      );
+    let supportEmbed = {
+      embed: {
+        color: 8359053,
+        author: {
+          name: process.env.BOT_NAME as string,
+          icon_url: process.env.ICON_URL as string,
+        },
+        title: `**Welcome to the Support Channel**`,
+        url: '',
+        description: `**My objective is to resolve any issues you have as quickly as possible. Make sure your ticket is as detailed as possible and a human helper will assist you.**`,
+        fields: [
+          {
+            name: `**Information when creating a support ticket**`,
+            value: `- Include detailed description of your issue(s)\n- Any relevant transaction ID\n- Your relevant username or email address\n- Any other information that may be relevant\n`,
+            inline: false,
+          },
+          {
+            name: `**Communication is key**`,
+            value: `Failure to communicate within the ticket channel will result in your issue being automatically closed after 24 hours of non-communication.`,
+            inline: false,
+          },
+          {
+            name: `**Create a support ticket**`,
+            value: `To create a ticket react with :question:`,
+            inline: false,
+          },
+        ],
+        timestamp: new Date(),
+        image: {
+          url: '',
+        },
+        footer: {
+          iconURL: process.env.ICON_URL as string,
+          text: process.env.BOT_NAME as string,
+        },
+      },
+    };
+    if (chan) await (await chan.send(supportEmbed)).react('❓');
+
     client
       .user!.setStatus('online')
       .catch(console.log)
@@ -72,7 +105,7 @@ let start = async (disabled: string[], admins: string[]) => {
         discord.util.setStatus({
           status: 'online',
           activity: {
-            name: 'Like a BOT',
+            name: 'I am here to Support',
             type: 'PLAYING',
           },
           afk: true,
@@ -88,7 +121,7 @@ let start = async (disabled: string[], admins: string[]) => {
     });
   });
   try {
-    client.login(process.env.API_KEY);
+    await client.login(process.env.API_KEY);
   } catch (e) {
     console.log(JSON.stringify(e));
     process.exit(1);
