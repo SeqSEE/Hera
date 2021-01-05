@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Cryptech Services
+ * Copyright 2021 Cryptech Services
  *
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -20,38 +20,10 @@
  THE SOFTWARE.
  */
 
-import CommandHandler from './CommandHandler';
-
-export default class MessageHandler {
-  private commandHandler: CommandHandler;
-
-  constructor(commandHandler: CommandHandler) {
-    this.commandHandler = commandHandler;
-  }
-
-  public getCommandHandler(): CommandHandler {
-    return this.commandHandler;
-  }
-
-  public handleMessage(msgObj: {
-    channel: string;
-    author: string;
-    content: string;
-  }) {
-    let m = msgObj.content.split(' ');
-    if (m.length > this.commandHandler.getCmdPrefix().length - 1) {
-      if (this.commandHandler) {
-        const command = this.commandHandler.getCommand(
-          m[0]
-            .toLowerCase()
-            .substring(this.commandHandler.getCmdPrefix().length)
-        );
-        if (command) {
-          if (command.isEnabled()) {
-            command.execute(msgObj);
-          }
-        }
-      }
-    }
-  }
+export default interface SupportTicket {
+  id: string;
+  user: string;
+  channel: string;
+  controlMessage: string;
+  lastUpdate: number;
 }

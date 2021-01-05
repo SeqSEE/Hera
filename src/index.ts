@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Cryptech Services
+ * Copyright 2020-2021 Cryptech Services
  *
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,19 @@
  */
 
 import init from './internal/init';
-import dotenv from 'dotenv';
 import { Client, TextChannel, PresenceData, Message } from 'discord.js';
 import DiscordHandler from './internal/DiscordHandler';
 import CommandHandler from './internal/CommandHandler';
 import MessageHandler from './internal/MessageHandler';
 import Commands from './Commands';
+import SupportHandler from './SupportHandler';
 
 let start = async (disabled: string[], admins: string[]) => {
-  const envConf = dotenv.config();
-  const client: Client = new Client();
+  const client: Client = new Client({
+    partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
+  });
+  let supportHandler: SupportHandler;
+
   const discord: DiscordHandler = new DiscordHandler(client);
   const cmdHandler: CommandHandler = new CommandHandler(
     <string>process.env.CMD_PREFIX,
@@ -47,6 +50,15 @@ let start = async (disabled: string[], admins: string[]) => {
         console.log(`Disabled ${cmd.getName}`);
     }
   });
+  client.on('message', (msg: Message) => {
+    if (msg.author.bot) return;
+    msgHandler.handleMessage({
+      channel: msg.channel.id,
+      author: msg.author.id,
+      content: msg.content,
+    });
+  });
+
   client.on('ready', async () => {
     if (((process.env.DEBUG as unknown) as number) === 1)
       console.log(`Logged in as ${client.user!.tag}!`);
@@ -58,44 +70,15 @@ let start = async (disabled: string[], admins: string[]) => {
             process.env.DEFAULT_CHAN as string
           )) as TextChannel)
         : null;
-    let supportEmbed = {
-      embed: {
-        color: 8359053,
-        author: {
-          name: process.env.BOT_NAME as string,
-          icon_url: process.env.ICON_URL as string,
-        },
-        title: `**Welcome to the Support Channel**`,
-        url: '',
-        description: `**My objective is to resolve any issues you have as quickly as possible. Make sure your ticket is as detailed as possible and a human helper will assist you.**`,
-        fields: [
-          {
-            name: `**Information when creating a support ticket**`,
-            value: `- Include detailed description of your issue(s)\n- Any relevant transaction ID\n- Your relevant username or email address\n- Any other information that may be relevant\n`,
-            inline: false,
-          },
-          {
-            name: `**Communication is key**`,
-            value: `Failure to communicate within the ticket channel will result in your issue being automatically closed after 24 hours of non-communication.`,
-            inline: false,
-          },
-          {
-            name: `**Create a support ticket**`,
-            value: `To create a ticket react with :question:`,
-            inline: false,
-          },
-        ],
-        timestamp: new Date(),
-        image: {
-          url: '',
-        },
-        footer: {
-          iconURL: process.env.ICON_URL as string,
-          text: process.env.BOT_NAME as string,
-        },
-      },
-    };
-    if (chan) await (await chan.send(supportEmbed)).react('❓');
+    let loggingChan: TextChannel | null =
+      (await client.channels.fetch(
+        process.env.LOGGING_CHAN as string
+      )) instanceof TextChannel
+        ? ((await client.channels.fetch(
+            process.env.LOGGING_CHAN as string
+          )) as TextChannel)
+        : null;
+    supportHandler = new SupportHandler(client, chan, loggingChan, cmdHandler);
 
     client
       .user!.setStatus('online')
@@ -112,14 +95,7 @@ let start = async (disabled: string[], admins: string[]) => {
         } as PresenceData);
       });
   });
-  client.on('message', (msg: Message) => {
-    if (msg.author.bot) return;
-    msgHandler.handleMessage({
-      channel: msg.channel.id,
-      author: msg.author.id,
-      content: msg.content,
-    });
-  });
+
   try {
     await client.login(process.env.API_KEY);
   } catch (e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Cryptech Services
+ * Copyright 2020-2021 Cryptech Services
  *
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,11 @@ export default async function init(
           console.log(`DEFAULT_CHAN is undefined`);
           process.exit(1);
         };
+      } else if (process.env.LOGGING_CHAN == undefined) {
+        s = () => {
+          console.log(`DEFAULT_CHAN is undefined`);
+          process.exit(1);
+        };
       } else if (process.env.SUPER_ADMIN == undefined) {
         s = () => {
           console.log(`SUPER_ADMIN is undefined`);
@@ -68,6 +73,11 @@ export default async function init(
       } else if (process.env.ICON_URL == undefined) {
         s = () => {
           console.log(`ICON_URL is undefined`);
+          process.exit(1);
+        };
+      } else if (process.env.TICKET_CATEGORY == undefined) {
+        s = () => {
+          console.log(`TICKET_CATEGORY is undefined`);
           process.exit(1);
         };
       } else {

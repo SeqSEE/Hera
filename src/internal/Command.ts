@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Cryptech Services
+ * Copyright 2020-2021 Cryptech Services
  *
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,7 @@
  THE SOFTWARE.
  */
 
+import { EmbedFieldData } from 'discord.js';
 import MessageObject from '../interface/MessageObject';
 
 export default class Command {
@@ -54,7 +55,7 @@ export default class Command {
     return this.aliases;
   }
 
-  public getHelpSection() {
+  public getHelpSection(): EmbedFieldData {
     return {
       name: `${process.env.CMD_PREFIX}${this.getName()}`,
       value: `${this.getUsage()}`,
