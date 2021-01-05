@@ -91,10 +91,11 @@ export default class SupportHandler {
   private loggingChannel: TextChannel | undefined;
   private supportMessage: Message | undefined;
   private lastTicket: number;
-  private gc;
+  private gc: NodeJS.Timeout | undefined;
   constructor(client: Client, cmdHandler: CommandHandler) {
     this.client = client;
     this.cmdHandler = cmdHandler;
+    this.gc = undefined;
     this.tickets = [];
     this.users = [];
     this.channels = [];
