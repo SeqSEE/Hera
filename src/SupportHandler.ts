@@ -248,7 +248,7 @@ export default class SupportHandler {
               let super_admin = await reaction.message.guild?.members.fetch(
                 process.env.SUPER_ADMIN as string
               );
-              if (super_admin) await target.roles.add(supportRole as Role);
+              if (super_admin) await super_admin.roles.add(supportRole as Role);
               await supportChannel.updateOverwrite(hera.roles.highest as Role, {
                 READ_MESSAGE_HISTORY: true,
                 VIEW_CHANNEL: true,
@@ -361,13 +361,13 @@ export default class SupportHandler {
       let data = JSON.parse(fs.readFileSync(supportDataFile).toString('utf8'));
       let lastTicketNum = 0;
       if (data.openTickets) {
-        Object.keys(data.openTickets).forEach(async (ticketId) => {
+        for (let ticketId of Object.keys(data.openTickets)) {
           const ticket: SupportTicket = data.openTickets[ticketId];
           if (this.channels.indexOf(ticket.channel) === -1) {
             let chan:
               | GuildChannel
               | undefined = this.channel?.guild.channels.cache.find(
-              (target) => target.id === ticket.id
+              (target) => target.id === ticket.channel
             );
             if (chan) {
               this.channels.push(ticket.channel);
@@ -385,10 +385,6 @@ export default class SupportHandler {
                 this.lastTicket = parseInt(ticket.id);
                 lastTicketNum = parseInt(ticket.id);
               }
-              let role = chan.guild.roles.cache.find(
-                (role) => role.name === `support-ticket-${ticket.id}`
-              );
-              if (role) await role.delete('Channel Deleted');
             } else {
               let role = this.channel?.guild.roles.cache.find(
                 (role) => role.name === `support-ticket-${ticket.id}`
@@ -396,7 +392,7 @@ export default class SupportHandler {
               if (role) await role.delete('Channel Deleted');
             }
           }
-        });
+        }
       }
 
       if (data.supportMessage) {
