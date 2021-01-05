@@ -457,6 +457,7 @@ export default class SupportHandler {
       if (ticket && ticket.user === messageObj.author) {
         ticket.lastUpdate = Math.round(new Date().getTime() / 1000);
         this.ticketsMap.set(id, ticket);
+        await this.save();
       }
     }
   }
