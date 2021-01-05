@@ -50,19 +50,19 @@ let start = async (disabled: string[], admins: string[]) => {
         console.log(`${Date()} Disabled ${cmd.getName()}`);
     }
   });
-  client.on('message', (msg: Message) => {
+  client.on('message', async (msg: Message) => {
     if (msg.author.bot) return;
-    if (supportHandler) {
-      supportHandler.handleMessage({
-        channel: msg.channel.id,
-        author: msg.author.id,
-      });
-    }
     msgHandler.handleMessage({
       channel: msg.channel.id,
       author: msg.author.id,
       content: msg.content,
     });
+    if (supportHandler) {
+      await supportHandler.handleMessage({
+        channel: msg.channel.id,
+        author: msg.author.id,
+      });
+    }
   });
 
   client.on('ready', async () => {

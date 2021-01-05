@@ -463,12 +463,12 @@ export default class SupportHandler {
   }
 
   private startGC() {
-    this.gc = setInterval(async () => {
+    let collector = async () => {
       for (let id of this.tickets) {
         const ticket: SupportTicket | undefined = this.ticketsMap.get(id);
         if (
           ticket &&
-          Math.round(new Date().getTime() / 1000) - ticket.lastUpdate > 86400000
+          Math.round(new Date().getTime() / 1000) - ticket.lastUpdate > 86400
         ) {
           const chan:
             | GuildChannel
@@ -481,7 +481,8 @@ export default class SupportHandler {
           );
         }
       }
-    }, 900000);
+    };
+    this.gc = setInterval(async () => await collector(), 900000);
   }
 
   private async load(guild: Guild | undefined) {
