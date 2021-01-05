@@ -45,14 +45,14 @@ export default async function init(
           console.log(`API_KEY is undefined`);
           process.exit(1);
         };
-      } else if (process.env.DEFAULT_CHAN == undefined) {
+      } else if (process.env.GUILD_ID == undefined) {
         s = () => {
-          console.log(`DEFAULT_CHAN is undefined`);
+          console.log(`GUILD_ID is undefined`);
           process.exit(1);
         };
-      } else if (process.env.LOGGING_CHAN == undefined) {
+      } else if (process.env.SUPPORT_CATEGORY == undefined) {
         s = () => {
-          console.log(`DEFAULT_CHAN is undefined`);
+          console.log(`SUPPORT_CATEGORY is undefined`);
           process.exit(1);
         };
       } else if (process.env.SUPER_ADMIN == undefined) {
@@ -73,11 +73,6 @@ export default async function init(
       } else if (process.env.ICON_URL == undefined) {
         s = () => {
           console.log(`ICON_URL is undefined`);
-          process.exit(1);
-        };
-      } else if (process.env.TICKET_CATEGORY == undefined) {
-        s = () => {
-          console.log(`TICKET_CATEGORY is undefined`);
           process.exit(1);
         };
       } else {

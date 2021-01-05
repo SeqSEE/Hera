@@ -1,7 +1,7 @@
 {
-  "name": "discord-bot-boilerplate",
+  "name": "hera",
   "version": "1.0.0",
-  "description": "TypeScript boiler plate for Discord Bots",
+  "description": "Hera is the goddess of mothers, marriage and family – she is here to offer support.",
   "main": "dist/index.js",
   "scripts": {
     "clean": "rm -rf dist && rm -rf disabledcommands.json",

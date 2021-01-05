@@ -25,6 +25,7 @@ import {
   CategoryChannel,
   Channel,
   Client,
+  Guild,
   GuildChannel,
   Message,
   MessageReaction,
@@ -79,32 +80,25 @@ const supportEmbed = {
 };
 
 export default class SupportHandler {
+  private client: Client;
+  private cmdHandler: CommandHandler;
   private tickets: string[];
   private users: string[];
   private channels: string[];
   private ticketsMap: Map<string, SupportTicket>;
-  private lastTicket: number;
-  private client: Client;
-  private cmdHandler: CommandHandler;
+  private supportCategory: CategoryChannel | undefined;
+  private supportChannel: TextChannel | undefined;
+  private loggingChannel: TextChannel | undefined;
   private supportMessage: Message | undefined;
-  private channel: TextChannel | null;
-  private loggingChannel: TextChannel | null;
-  private ticketCategory: CategoryChannel | undefined;
-  constructor(
-    client: Client,
-    channel: TextChannel | null,
-    loggingChannel: TextChannel | null,
-    cmdHandler: CommandHandler
-  ) {
+  private lastTicket: number;
+  constructor(client: Client, cmdHandler: CommandHandler) {
+    this.client = client;
+    this.cmdHandler = cmdHandler;
     this.tickets = [];
     this.users = [];
     this.channels = [];
     this.ticketsMap = new Map<string, SupportTicket>();
     this.lastTicket = 0;
-    this.client = client;
-    this.channel = channel;
-    this.loggingChannel = loggingChannel;
-    this.cmdHandler = cmdHandler;
     this.setup();
   }
 
@@ -124,7 +118,7 @@ export default class SupportHandler {
           }
         }
         if (message.id === this.supportMessage?.id) {
-          this.supportMessage = await this.channel?.send(supportEmbed);
+          this.supportMessage = await this.supportChannel?.send(supportEmbed);
           await this.supportMessage?.react('❓');
           await this.save();
         }
@@ -185,13 +179,12 @@ export default class SupportHandler {
         this.handleReaction(u, reaction);
       }
     );
-    let cat = this.channel?.guild.channels.cache.get(
-      process.env.TICKET_CATEGORY as string
+    const guild: Guild | undefined = this.client.guilds.cache.get(
+      process.env.GUILD_ID as string
     );
-    if (cat) this.ticketCategory = cat as CategoryChannel;
-    await this.load();
+    await this.load(guild);
     if (!this.supportMessage) {
-      this.supportMessage = await this.channel?.send(supportEmbed);
+      this.supportMessage = await this.supportChannel?.send(supportEmbed);
       await this.supportMessage?.react('❓');
       await this.save();
     }
@@ -212,8 +205,10 @@ export default class SupportHandler {
                 `support-ticket-${tick}`
               );
 
-              if (this.ticketCategory != undefined)
-                supportChannel.setParent(this.ticketCategory);
+              if (this.supportCategory != undefined)
+                supportChannel.setParent(
+                  this.supportCategory as CategoryChannel
+                );
               if (this.channels.indexOf(supportChannel.id) === -1)
                 this.channels.push(supportChannel.id);
               if (this.tickets.indexOf(`${tick}`) === -1)
@@ -356,72 +351,203 @@ export default class SupportHandler {
     }
   }
 
-  private async load() {
-    if (fs.existsSync(supportDataFile)) {
-      let data = JSON.parse(fs.readFileSync(supportDataFile).toString('utf8'));
-      let lastTicketNum = 0;
-      if (data.openTickets) {
-        for (let ticketId of Object.keys(data.openTickets)) {
-          const ticket: SupportTicket = data.openTickets[ticketId];
-          if (this.channels.indexOf(ticket.channel) === -1) {
-            let chan:
-              | GuildChannel
-              | undefined = this.channel?.guild.channels.cache.find(
-              (target) => target.id === ticket.channel
-            );
-            if (chan) {
-              this.channels.push(ticket.channel);
-              this.ticketsMap.set(ticket.id, ticket);
-              if (this.tickets.indexOf(ticket.id) === -1) {
-                this.tickets.push(ticket.id);
-              }
-              if (this.users.indexOf(ticket.user) === -1) {
-                this.users.push(ticket.user);
-              }
-              if (this.channels.indexOf(ticket.channel) === -1) {
-                this.channels.push(ticket.channel);
-              }
-              if (parseInt(ticket.id) > lastTicketNum) {
-                this.lastTicket = parseInt(ticket.id);
-                lastTicketNum = parseInt(ticket.id);
-              }
-            } else {
-              let role = this.channel?.guild.roles.cache.find(
-                (role) => role.name === `support-ticket-${ticket.id}`
-              );
-              if (role) await role.delete('Channel Deleted');
-            }
-          }
-        }
-      }
+  private async createLoggingChannel(guild: Guild) {
+    this.loggingChannel = await guild.channels.create('ticket-logs');
+    this.loggingChannel.setParent(this.supportCategory as CategoryChannel);
+    let supportRole: Role | undefined = guild.roles.cache.find(
+      (role) => role.name === `support-ticket-logs`
+    );
 
-      if (data.supportMessage) {
-        this.supportMessage = await this.channel?.messages.fetch(
-          data.supportMessage
+    if (!supportRole) {
+      let roleData: RoleData = {
+        name: `support-ticket-logs`,
+        mentionable: false,
+      };
+      supportRole = await guild.roles.create({
+        data: roleData,
+        reason: 'Created by Hera for a support ticket',
+      });
+    }
+
+    let everyone = guild.roles.everyone;
+    let hera = await guild.members.fetch(this.client.user as User);
+    this.cmdHandler.getAdmins().forEach(async (admin) => {
+      let target = await guild.members.fetch(admin);
+      if (target) await target.roles.add(supportRole as Role);
+    });
+    let super_admin = await guild?.members.fetch(
+      process.env.SUPER_ADMIN as string
+    );
+    if (super_admin) await super_admin.roles.add(supportRole as Role);
+    await this.loggingChannel.updateOverwrite(hera.roles.highest as Role, {
+      READ_MESSAGE_HISTORY: true,
+      VIEW_CHANNEL: true,
+      SEND_MESSAGES: true,
+      ADD_REACTIONS: true,
+    });
+    await this.loggingChannel.updateOverwrite(supportRole as Role, {
+      READ_MESSAGE_HISTORY: true,
+      VIEW_CHANNEL: true,
+      SEND_MESSAGES: true,
+      ADD_REACTIONS: true,
+    });
+    await this.loggingChannel.updateOverwrite(everyone as Role, {
+      READ_MESSAGE_HISTORY: false,
+      VIEW_CHANNEL: false,
+      SEND_MESSAGES: false,
+      ADD_REACTIONS: false,
+    });
+  }
+
+  private async createSupportChannel(guild: Guild) {
+    this.supportChannel = await guild.channels.create('support');
+    this.supportChannel.setParent(this.supportCategory as CategoryChannel);
+
+    let helperRole: Role | undefined = guild.roles.cache.find(
+      (role) => role.name === `heras-helper`
+    );
+
+    if (!helperRole) {
+      let roleData: RoleData = {
+        name: `heras-helper`,
+        mentionable: true,
+      };
+      helperRole = await guild.roles.create({
+        data: roleData,
+        reason: 'Created by Hera for her helpers',
+      });
+    }
+    let everyone = guild.roles.everyone;
+    let hera = await guild.members.fetch(this.client.user as User);
+    this.cmdHandler.getAdmins().forEach(async (admin) => {
+      let target = await guild.members.fetch(admin);
+      if (target) await target.roles.add(helperRole as Role);
+    });
+    let super_admin = await guild?.members.fetch(
+      process.env.SUPER_ADMIN as string
+    );
+    if (super_admin) await super_admin.roles.add(helperRole as Role);
+    await this.supportChannel.updateOverwrite(hera.roles.highest as Role, {
+      READ_MESSAGE_HISTORY: true,
+      VIEW_CHANNEL: true,
+      SEND_MESSAGES: true,
+      ADD_REACTIONS: true,
+    });
+    await this.supportChannel.updateOverwrite(helperRole as Role, {
+      READ_MESSAGE_HISTORY: true,
+      VIEW_CHANNEL: true,
+      SEND_MESSAGES: true,
+      ADD_REACTIONS: true,
+    });
+    await this.supportChannel.updateOverwrite(everyone as Role, {
+      READ_MESSAGE_HISTORY: true,
+      VIEW_CHANNEL: true,
+      SEND_MESSAGES: false,
+      ADD_REACTIONS: true,
+    });
+  }
+
+  private async load(guild: Guild | undefined) {
+    if (guild) {
+      let cat = guild.channels.cache.get(
+        process.env.SUPPORT_CATEGORY as string
+      );
+      this.supportCategory =
+        cat instanceof CategoryChannel ? (cat as CategoryChannel) : undefined;
+      if (!this.supportCategory) {
+        console.log(`ERROR: Could not find the support category.`);
+        process.exit(1);
+      }
+      if (fs.existsSync(supportDataFile)) {
+        let data = JSON.parse(
+          fs.readFileSync(supportDataFile).toString('utf8')
         );
-        if (this.supportMessage) {
-          let reacts:
-            | MessageReaction
-            | undefined = this.supportMessage.reactions.cache.find(
-            (reaction) => reaction.emoji.toString() === '❓'
+
+        if (data.supportChannel) {
+          let chan = guild.channels.cache.get(data.supportChannel);
+          this.supportChannel =
+            chan instanceof TextChannel ? (chan as TextChannel) : undefined;
+          if (!this.supportChannel) {
+            await this.createSupportChannel(guild);
+          }
+        }
+        if (data.supportMessage) {
+          this.supportMessage = await this.supportChannel?.messages.fetch(
+            data.supportMessage
           );
-          if (reacts) {
-            let users = await reacts.users.fetch();
-            let it = users.keys();
-            let result = it.next();
-            while (!result.done) {
-              if (result.value != this.client.user?.id) {
-                let user: User | undefined = users.get(result.value);
-                if (user) {
-                  let u: User = user.partial ? await user.fetch() : user;
-                  await this.handleReaction(u, reacts);
+          if (this.supportMessage) {
+            let reacts:
+              | MessageReaction
+              | undefined = this.supportMessage.reactions.cache.find(
+              (reaction) => reaction.emoji.toString() === '❓'
+            );
+            if (reacts) {
+              let users = await reacts.users.fetch();
+              let it = users.keys();
+              let result = it.next();
+              while (!result.done) {
+                if (result.value != this.client.user?.id) {
+                  let user: User | undefined = users.get(result.value);
+                  if (user) {
+                    let u: User = user.partial ? await user.fetch() : user;
+                    await this.handleReaction(u, reacts);
+                  }
                 }
+                result = it.next();
               }
-              result = it.next();
+            }
+          }
+        } else {
+          await this.createSupportChannel(guild as Guild);
+        }
+        if (data.loggingChannel) {
+          this.loggingChannel =
+            guild.channels.cache.get(data.loggingChannel) === undefined
+              ? undefined
+              : (guild.channels.cache.get(data.loggingChannel) as TextChannel);
+          if (!this.loggingChannel) {
+            await this.createLoggingChannel(guild as Guild);
+          }
+        } else {
+          await this.createLoggingChannel(guild as Guild);
+        }
+        let lastTicketNum = 0;
+        if (data.openTickets) {
+          for (let ticketId of Object.keys(data.openTickets)) {
+            const ticket: SupportTicket = data.openTickets[ticketId];
+            if (this.channels.indexOf(ticket.channel) === -1) {
+              let chan: GuildChannel | undefined = guild.channels.cache.find(
+                (target) => target.id === ticket.channel
+              );
+              if (chan) {
+                this.channels.push(ticket.channel);
+                this.ticketsMap.set(ticket.id, ticket);
+                if (this.tickets.indexOf(ticket.id) === -1) {
+                  this.tickets.push(ticket.id);
+                }
+                if (this.users.indexOf(ticket.user) === -1) {
+                  this.users.push(ticket.user);
+                }
+                if (this.channels.indexOf(ticket.channel) === -1) {
+                  this.channels.push(ticket.channel);
+                }
+                if (parseInt(ticket.id) > lastTicketNum) {
+                  this.lastTicket = parseInt(ticket.id);
+                  lastTicketNum = parseInt(ticket.id);
+                }
+              } else {
+                let role = guild.roles.cache.find(
+                  (role) => role.name === `support-ticket-${ticket.id}`
+                );
+                if (role) await role.delete('Channel Deleted');
+              }
             }
           }
         }
       }
+    } else {
+      console.log(`ERROR: Could not find the guild.`);
+      process.exit(1);
     }
   }
 
@@ -434,6 +560,8 @@ export default class SupportHandler {
       supportDataFile,
       JSON.stringify(
         {
+          loggingChannel: this.loggingChannel?.id,
+          supportChannel: this.supportChannel?.id,
           supportMessage: this.supportMessage?.id,
           openTickets,
         },

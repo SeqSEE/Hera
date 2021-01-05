@@ -21,7 +21,7 @@
  */
 
 import init from './internal/init';
-import { Client, TextChannel, PresenceData, Message } from 'discord.js';
+import { Client, PresenceData, Message } from 'discord.js';
 import DiscordHandler from './internal/DiscordHandler';
 import CommandHandler from './internal/CommandHandler';
 import MessageHandler from './internal/MessageHandler';
@@ -47,7 +47,7 @@ let start = async (disabled: string[], admins: string[]) => {
     if (cmd) {
       cmd.setEnabled(false);
       if (Number(process.env.DEBUG as unknown) === 1)
-        console.log(`Disabled ${cmd.getName}`);
+        console.log(`Disabled ${cmd.getName()}`);
     }
   });
   client.on('message', (msg: Message) => {
@@ -62,23 +62,8 @@ let start = async (disabled: string[], admins: string[]) => {
   client.on('ready', async () => {
     if (((process.env.DEBUG as unknown) as number) === 1)
       console.log(`Logged in as ${client.user!.tag}!`);
-    let chan: TextChannel | null =
-      (await client.channels.fetch(
-        process.env.DEFAULT_CHAN as string
-      )) instanceof TextChannel
-        ? ((await client.channels.fetch(
-            process.env.DEFAULT_CHAN as string
-          )) as TextChannel)
-        : null;
-    let loggingChan: TextChannel | null =
-      (await client.channels.fetch(
-        process.env.LOGGING_CHAN as string
-      )) instanceof TextChannel
-        ? ((await client.channels.fetch(
-            process.env.LOGGING_CHAN as string
-          )) as TextChannel)
-        : null;
-    supportHandler = new SupportHandler(client, chan, loggingChan, cmdHandler);
+
+    supportHandler = new SupportHandler(client, cmdHandler);
 
     client
       .user!.setStatus('online')
