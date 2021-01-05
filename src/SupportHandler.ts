@@ -91,6 +91,7 @@ export default class SupportHandler {
   private loggingChannel: TextChannel | undefined;
   private supportMessage: Message | undefined;
   private lastTicket: number;
+  private gc;
   constructor(client: Client, cmdHandler: CommandHandler) {
     this.client = client;
     this.cmdHandler = cmdHandler;
@@ -188,6 +189,7 @@ export default class SupportHandler {
       await this.supportMessage?.react('❓');
       await this.save();
     }
+    this.startGC();
   }
 
   private async handleReaction(user: User, reaction: MessageReaction) {
@@ -445,6 +447,39 @@ export default class SupportHandler {
       SEND_MESSAGES: false,
       ADD_REACTIONS: true,
     });
+  }
+
+  public async handleMessage(messageObj: { channel: string; author: string }) {
+    if (messageObj.author === this.client.user?.id) return;
+    for (let id of this.tickets) {
+      const ticket: SupportTicket | undefined = this.ticketsMap.get(id);
+      if (ticket && ticket.user === messageObj.author) {
+        ticket.lastUpdate = Math.round(new Date().getTime() / 1000);
+        this.ticketsMap.set(id, ticket);
+      }
+    }
+  }
+
+  private startGC() {
+    this.gc = setInterval(async () => {
+      for (let id of this.tickets) {
+        const ticket: SupportTicket | undefined = this.ticketsMap.get(id);
+        if (
+          ticket &&
+          Math.round(new Date().getTime() / 1000) - ticket.lastUpdate > 86400000
+        ) {
+          const chan:
+            | GuildChannel
+            | undefined = this.supportChannel?.guild.channels.cache.get(
+            ticket.channel
+          );
+          if (chan) await chan.delete('Ticket closed due to inactivity');
+          await this.loggingChannel?.send(
+            `SYSTEM - closed support-ticket-${ticket.id}`
+          );
+        }
+      }
+    }, 900000);
   }
 
   private async load(guild: Guild | undefined) {

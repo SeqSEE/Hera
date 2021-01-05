@@ -47,11 +47,17 @@ let start = async (disabled: string[], admins: string[]) => {
     if (cmd) {
       cmd.setEnabled(false);
       if (Number(process.env.DEBUG as unknown) === 1)
-        console.log(`Disabled ${cmd.getName()}`);
+        console.log(`${Date()} Disabled ${cmd.getName()}`);
     }
   });
   client.on('message', (msg: Message) => {
     if (msg.author.bot) return;
+    if (supportHandler) {
+      supportHandler.handleMessage({
+        channel: msg.channel.id,
+        author: msg.author.id,
+      });
+    }
     msgHandler.handleMessage({
       channel: msg.channel.id,
       author: msg.author.id,
@@ -61,7 +67,7 @@ let start = async (disabled: string[], admins: string[]) => {
 
   client.on('ready', async () => {
     if (((process.env.DEBUG as unknown) as number) === 1)
-      console.log(`Logged in as ${client.user!.tag}!`);
+      console.log(`${Date()} Logged in as ${client.user!.tag}!`);
 
     supportHandler = new SupportHandler(client, cmdHandler);
 
