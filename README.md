@@ -5,7 +5,7 @@ Hera is the goddess of mothers, marriage and family – she is here to offer sup
 
 ### Prerequisites
 
-- [NodeJS 12+](https://nodejs.org/en/download/)
+- [NodeJS 14+](https://nodejs.org/en/download/)
 - [TypeScript](https://www.typescriptlang.org/#installation)
 - [Discord API Key](https://discord.com/developers/applications)
 - [Discord Guild](https://support.discord.com/hc/en-us/articles/204849977-How-do-I-create-a-server-)
