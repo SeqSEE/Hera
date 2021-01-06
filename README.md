@@ -1,6 +1,6 @@
 # Hera
 
-![Hera](https://raw.githubusercontent.com/SeqSEE/Hera/master/defaultIcon.png)  
+![Hera](defaultIcon.png)  
 Hera is the goddess of mothers, marriage and family – she is here to offer support.
 
 ### Prerequisites
