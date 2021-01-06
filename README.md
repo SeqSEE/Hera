@@ -44,7 +44,7 @@ npm run build
 npm run start
 ```
 
-- edit the configuration file with your configuration details for you `API_KEY`, `GUILD_ID`, `SUPPORT_CATEGORY`, and `SUPER_ADMIN`
+- edit the ``.env`` configuration file with your configuration details for you `API_KEY`, `GUILD_ID`, `SUPPORT_CATEGORY`, and `SUPER_ADMIN`
 
 ```
 DEBUG=1
