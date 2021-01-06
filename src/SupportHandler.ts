@@ -50,7 +50,7 @@ const supportEmbed = {
     },
     title: `**Welcome to the Support Channel**`,
     url: '',
-    description: `**My objective is to resolve any issues you have as quickly as possible. Make sure your ticket is as detailed as possible and a human helper will assist you.**`,
+    description: `**My objective is to resolve any issues you have as quickly as possible.\nMake sure your ticket is as detailed as possible and a human helper will assist you.**`,
     fields: [
       {
         name: `**Information when creating a support ticket**`,
@@ -91,11 +91,9 @@ export default class SupportHandler {
   private loggingChannel: TextChannel | undefined;
   private supportMessage: Message | undefined;
   private lastTicket: number;
-  private gc: NodeJS.Timeout | undefined;
   constructor(client: Client, cmdHandler: CommandHandler) {
     this.client = client;
     this.cmdHandler = cmdHandler;
-    this.gc = undefined;
     this.tickets = [];
     this.users = [];
     this.channels = [];
@@ -129,38 +127,10 @@ export default class SupportHandler {
     this.client.on(
       'channelDelete',
       async (channel: Channel | PartialDMChannel) => {
-        let chan: TextChannel = channel as TextChannel;
-        let role = chan.guild.roles.cache.find(
-          (role) => role.name === chan.name
+        await this.closeSupportTicket(
+          channel,
+          `SYSTEM - closed support-ticket-%id%`
         );
-        if (role) await role.delete('Channel Deleted');
-        this.tickets.map(async (ticket) => {
-          if (this.ticketsMap.get(ticket)?.channel === chan.id) {
-            const ticketIndex = this.tickets.indexOf(ticket);
-            if (ticketIndex > -1) {
-              this.tickets.splice(ticketIndex, 1);
-            }
-            const userIndex = this.users.indexOf(
-              this.ticketsMap.get(ticket)?.user as string
-            );
-            if (userIndex > -1) {
-              this.users.splice(userIndex, 1);
-            }
-            const channelIndex = this.channels.indexOf(
-              this.ticketsMap.get(ticket)?.channel as string
-            );
-            if (channelIndex > -1) {
-              this.channels.splice(channelIndex, 1);
-            }
-            await this.loggingChannel?.send(
-              `SYSTEM - closed support-ticket-${
-                this.ticketsMap.get(ticket)?.id
-              }`
-            );
-            this.ticketsMap.delete(ticket);
-          }
-        });
-        await this.save();
       }
     );
     this.client.on(
@@ -178,7 +148,7 @@ export default class SupportHandler {
           }
         }
         let u: User = user.partial ? await user.fetch() : user;
-        this.handleReaction(u, reaction);
+        await this.handleReaction(u, reaction);
       }
     );
     const guild: Guild | undefined = this.client.guilds.cache.get(
@@ -198,130 +168,25 @@ export default class SupportHandler {
     if (!reaction.message.guild) return;
     if (this.supportMessage != undefined) {
       if (reaction.message.id === this.supportMessage.id) {
-        const tick = ++this.lastTicket;
         if (reaction.emoji.toString() === '❓') {
           try {
             reaction.users.remove(user);
             if (this.users.indexOf(user.id) === -1) {
-              this.users.push(user.id);
-              let supportChannel = await reaction.message.guild.channels.create(
-                `support-ticket-${tick}`
-              );
-
-              if (this.supportCategory != undefined)
-                supportChannel.setParent(
-                  this.supportCategory as CategoryChannel
-                );
-              if (this.channels.indexOf(supportChannel.id) === -1)
-                this.channels.push(supportChannel.id);
-              if (this.tickets.indexOf(`${tick}`) === -1)
-                this.tickets.push(`${tick}`);
-
-              let supportRole:
-                | Role
-                | undefined = reaction.message.guild.roles.cache.find(
-                (role) => role.name === `support-ticket-${tick}`
-              );
-
-              if (!supportRole) {
-                let roleData: RoleData = {
-                  name: `support-ticket-${tick}`,
-                  mentionable: true,
-                };
-                supportRole = await reaction.message.guild.roles.create({
-                  data: roleData,
-                  reason: 'Created by Hera for a support ticket',
-                });
-              }
-              let target = await reaction.message.guild.members.fetch(user.id);
-              if (target) await target.roles.add(supportRole as Role);
-              let everyone = reaction.message.guild.roles.everyone;
-              let hera = await reaction.message.guild.members.fetch(
-                this.client.user as User
-              );
-              this.cmdHandler.getAdmins().forEach(async (admin) => {
-                let target = await reaction.message.guild?.members.fetch(admin);
-                if (target) await target.roles.add(supportRole as Role);
-              });
-              let super_admin = await reaction.message.guild?.members.fetch(
-                process.env.SUPER_ADMIN as string
-              );
-              if (super_admin) await super_admin.roles.add(supportRole as Role);
-              await supportChannel.updateOverwrite(hera.roles.highest as Role, {
-                READ_MESSAGE_HISTORY: true,
-                VIEW_CHANNEL: true,
-                SEND_MESSAGES: true,
-                ADD_REACTIONS: true,
-              });
-              await supportChannel.updateOverwrite(supportRole as Role, {
-                READ_MESSAGE_HISTORY: true,
-                VIEW_CHANNEL: true,
-                SEND_MESSAGES: true,
-                ADD_REACTIONS: true,
-              });
-              await supportChannel.updateOverwrite(everyone as Role, {
-                READ_MESSAGE_HISTORY: false,
-                VIEW_CHANNEL: false,
-                SEND_MESSAGES: false,
-                ADD_REACTIONS: false,
-              });
-              let channelEmbed = {
-                embed: {
-                  color: 8359053,
-                  author: {
-                    name: process.env.BOT_NAME as string,
-                    icon_url: process.env.ICON_URL as string,
-                  },
-                  title: `** **`,
-                  url: '',
-                  description: `**Welcome <@${user.id}>, my objective is to resolve any issues you have as quickly as possible.\nMake sure your ticket is as detailed as possible and a human helper will assist you.**`,
-                  fields: [
-                    {
-                      name: `** **`,
-                      value: `<@&${supportRole.id}>`,
-                      inline: false,
-                    },
-                    {
-                      name: `**Information to provide when creating a support ticket**`,
-                      value: `- Include detailed description of your issue(s)\n- Any relevant transaction ID\n- Your relevant username or email address\n- Any other information that may be relevant\n`,
-                      inline: false,
-                    },
-                    {
-                      name: `**Communication is key**`,
-                      value: `Failure to communicate within the ticket channel will result in your issue being automatically closed after 24 hours of non-communication.`,
-                      inline: false,
-                    },
-                    {
-                      name: `**Closing a ticket**`,
-                      value: `To close the ticket react with ❌`,
-                      inline: false,
-                    },
-                  ],
-                  timestamp: new Date(),
-                  image: {
-                    url: '',
-                  },
-                  footer: {
-                    iconURL: process.env.ICON_URL as string,
-                    text: process.env.BOT_NAME as string,
-                  },
-                },
-              };
-              let introMessage = await supportChannel.send(channelEmbed);
-              await introMessage.react('❌');
-              this.ticketsMap.set(`${tick}`, {
-                id: `${tick}`,
-                user: user.id,
-                channel: supportChannel.id,
-                controlMessage: introMessage.id,
-                lastUpdate: Math.round(new Date().getTime() / 1000),
-              });
-              await this.loggingChannel?.send(
-                `<@${user.id}> (${user.username}#${user.discriminator}) ${user.id} - Opened support-ticket-${tick}`
-              );
-              await this.save();
+              await this.createSupportTicket(reaction.message.guild, user);
             } else {
-              //TODO: ping the user in the open support channel because they have a ticket open already
+              const ticket: SupportTicket | undefined = this.getTicketByUserId(
+                user.id
+              );
+              if (ticket) {
+                const chan = reaction.message.guild.channels.cache.get(
+                  ticket.channel
+                );
+                if (chan instanceof TextChannel) {
+                  (chan as TextChannel).send(
+                    `<@${user.id}> you already have a ticket open here.`
+                  );
+                }
+              }
             }
           } catch (error) {
             console.error(
@@ -334,22 +199,248 @@ export default class SupportHandler {
           reaction.users.remove(user);
         }
       } else {
-        this.tickets.forEach(async (ticket) => {
-          if (
-            reaction.message.id === this.ticketsMap.get(ticket)?.controlMessage
-          ) {
-            if (reaction.emoji.toString() === '❌') {
-              await reaction.message.channel.delete('A user closed ticket');
-              await this.loggingChannel?.send(
-                `<@${user.id}> (${user.username}#${user.discriminator}) ${
-                  user.id
-                } - closed support-ticket-${this.ticketsMap.get(ticket)?.id}`
+        const ticket: SupportTicket | undefined = this.getTicketByMessageId(
+          reaction.message.id
+        );
+        if (ticket) {
+          if (reaction.emoji.toString() === '❌') {
+            await reaction.message.channel.delete('A user closed ticket');
+            await this.loggingChannel?.send(
+              `<@${user.id}> (${user.username}#${user.discriminator}) ${user.id} - closed support-ticket-${ticket.id}`
+            );
+          } else if (reaction.emoji.toString() === '📁') {
+            if (
+              this.cmdHandler.isAdmin(user.id) ||
+              user.id === (process.env.SUPER_ADMIN as string)
+            ) {
+              await this.archiveSupportTicket(
+                ticket.id,
+                reaction.message.guild
               );
             } else {
               reaction.users.remove(user);
             }
+          } else {
+            reaction.users.remove(user);
           }
-        });
+        }
+      }
+    }
+  }
+
+  private getTicketById(id: string): SupportTicket | undefined {
+    let ticket: SupportTicket | undefined = undefined;
+    for (let t of this.tickets) {
+      const tick: SupportTicket | undefined = this.ticketsMap.get(t);
+      if (tick && tick.id === id) {
+        ticket = tick;
+      }
+    }
+    return ticket;
+  }
+
+  private getTicketByUserId(id: string): SupportTicket | undefined {
+    let ticket: SupportTicket | undefined = undefined;
+    for (let t of this.tickets) {
+      const tick: SupportTicket | undefined = this.ticketsMap.get(t);
+      if (tick && tick.user === id) {
+        ticket = tick;
+      }
+    }
+    return ticket;
+  }
+
+  private getTicketByChannelId(id: string): SupportTicket | undefined {
+    let ticket: SupportTicket | undefined = undefined;
+    for (let t of this.tickets) {
+      const tick: SupportTicket | undefined = this.ticketsMap.get(t);
+      if (tick && tick.channel === id) {
+        ticket = tick;
+      }
+    }
+    return ticket;
+  }
+
+  private getTicketByMessageId(id: string): SupportTicket | undefined {
+    let ticket: SupportTicket | undefined = undefined;
+    for (let t of this.tickets) {
+      const tick: SupportTicket | undefined = this.ticketsMap.get(t);
+      if (tick && tick.controlMessage === id) {
+        ticket = tick;
+      }
+    }
+    return ticket;
+  }
+
+  private async closeSupportTicket(
+    channel: Channel | PartialDMChannel,
+    message: string
+  ) {
+    let chan: TextChannel = channel as TextChannel;
+    let role = chan.guild.roles.cache.find((role) => role.name === chan.name);
+    if (role) await role.delete('Support ticket closed');
+    const ticket: SupportTicket | undefined = this.getTicketByChannelId(
+      chan.id
+    );
+    if (ticket) {
+      const ticketIndex = this.tickets.indexOf(ticket.id);
+      if (ticketIndex > -1) {
+        this.tickets.splice(ticketIndex, 1);
+      }
+      const userIndex = this.users.indexOf(ticket.user as string);
+      if (userIndex > -1) {
+        this.users.splice(userIndex, 1);
+      }
+      const channelIndex = this.channels.indexOf(ticket.channel as string);
+      if (channelIndex > -1) {
+        this.channels.splice(channelIndex, 1);
+      }
+      await this.loggingChannel?.send(message.replace('%id%', `${ticket.id}`));
+      this.ticketsMap.delete(ticket.id);
+      await this.save();
+    }
+  }
+
+  private async createSupportTicket(guild: Guild, user: User) {
+    const tick = ++this.lastTicket;
+    this.users.push(user.id);
+    let supportChannel = await guild.channels.create(`support-ticket-${tick}`);
+
+    if (this.supportCategory != undefined)
+      supportChannel.setParent(this.supportCategory as CategoryChannel);
+    if (this.channels.indexOf(supportChannel.id) === -1)
+      this.channels.push(supportChannel.id);
+    if (this.tickets.indexOf(`${tick}`) === -1) this.tickets.push(`${tick}`);
+
+    let supportRole: Role | undefined = guild.roles.cache.find(
+      (role) => role.name === `support-ticket-${tick}`
+    );
+
+    if (!supportRole) {
+      let roleData: RoleData = {
+        name: `support-ticket-${tick}`,
+        mentionable: false,
+      };
+      supportRole = await guild.roles.create({
+        data: roleData,
+        reason: 'Created by Hera for a support ticket',
+      });
+    }
+    let helperRole: Role | undefined = guild.roles.cache.find(
+      (role) => role.name === `heras-helper`
+    );
+
+    if (!helperRole) {
+      let roleData: RoleData = {
+        name: `heras-helper`,
+        mentionable: true,
+      };
+      helperRole = await guild.roles.create({
+        data: roleData,
+        reason: 'Created by Hera for her helpers',
+      });
+    }
+    let target = await guild.members.fetch(user.id);
+    if (target) await target.roles.add(supportRole as Role);
+    let everyone = guild.roles.everyone;
+    let hera = await guild.members.fetch(this.client.user as User);
+    this.cmdHandler.getAdmins().forEach(async (admin) => {
+      let target = await guild.members.fetch(admin);
+      if (target) await target.roles.add(helperRole as Role);
+    });
+    let super_admin = await guild.members.fetch(
+      process.env.SUPER_ADMIN as string
+    );
+    if (super_admin) await super_admin.roles.add(helperRole as Role);
+    await supportChannel.updateOverwrite(hera.roles.highest as Role, {
+      READ_MESSAGE_HISTORY: true,
+      VIEW_CHANNEL: true,
+      SEND_MESSAGES: true,
+      ADD_REACTIONS: true,
+    });
+    await supportChannel.updateOverwrite(supportRole as Role, {
+      READ_MESSAGE_HISTORY: true,
+      VIEW_CHANNEL: true,
+      SEND_MESSAGES: true,
+      ADD_REACTIONS: true,
+    });
+    await supportChannel.updateOverwrite(helperRole as Role, {
+      READ_MESSAGE_HISTORY: true,
+      VIEW_CHANNEL: true,
+      SEND_MESSAGES: true,
+      ADD_REACTIONS: true,
+    });
+    await supportChannel.updateOverwrite(everyone as Role, {
+      READ_MESSAGE_HISTORY: false,
+      VIEW_CHANNEL: false,
+      SEND_MESSAGES: false,
+      ADD_REACTIONS: false,
+    });
+    let channelEmbed = {
+      embed: {
+        color: 8359053,
+        author: {
+          name: process.env.BOT_NAME as string,
+          icon_url: process.env.ICON_URL as string,
+        },
+        title: `** **`,
+        url: '',
+        description: `**Welcome <@${user.id}>, my objective is to resolve any issues you have as quickly as possible.\nMake sure your ticket is as detailed as possible and a human helper will assist you shortly.**`,
+        fields: [
+          {
+            name: `** **`,
+            value: `<@&${helperRole.id}>`,
+            inline: false,
+          },
+          {
+            name: `**Information to provide when creating a support ticket**`,
+            value: `- Include detailed description of your issue(s)\n- Any relevant transaction ID\n- Your relevant username or email address\n- Any other information that may be relevant\n`,
+            inline: false,
+          },
+          {
+            name: `**Communication is key**`,
+            value: `Failure to communicate within the ticket channel will result in your issue being automatically closed after 24 hours of non-communication.`,
+            inline: false,
+          },
+          {
+            name: `**Closing a ticket**`,
+            value: `To close the ticket react with ❌`,
+            inline: false,
+          },
+        ],
+        timestamp: new Date(),
+        image: {
+          url: '',
+        },
+        footer: {
+          iconURL: process.env.ICON_URL as string,
+          text: process.env.BOT_NAME as string,
+        },
+      },
+    };
+    let introMessage = await supportChannel.send(channelEmbed);
+    await introMessage.react('❌');
+    await introMessage.react('📁');
+    this.ticketsMap.set(`${tick}`, {
+      id: `${tick}`,
+      user: user.id,
+      channel: supportChannel.id,
+      controlMessage: introMessage.id,
+      lastUpdate: Math.round(new Date().getTime() / 1000),
+    });
+    await this.loggingChannel?.send(
+      `<@${user.id}> (${user.username}#${user.discriminator}) ${user.id} - Opened support-ticket-${tick}`
+    );
+    await this.save();
+  }
+
+  public async archiveSupportTicket(id: string, guild: Guild) {
+    const ticket: SupportTicket | undefined = this.getTicketById(id);
+    if (ticket) {
+      const chan = guild.channels.cache.get(ticket.channel);
+      if (chan) {
+        await this.closeSupportTicket(chan, `Archived %id%`);
+        await chan.setName(`archive-${chan.name}`);
       }
     }
   }
@@ -462,10 +553,10 @@ export default class SupportHandler {
     }
   }
 
-  private startGC() {
+  private async startGC() {
     let collector = async () => {
       for (let id of this.tickets) {
-        const ticket: SupportTicket | undefined = this.ticketsMap.get(id);
+        const ticket: SupportTicket | undefined = this.getTicketById(id);
         if (
           ticket &&
           Math.round(new Date().getTime() / 1000) - ticket.lastUpdate > 86400
@@ -476,13 +567,11 @@ export default class SupportHandler {
             ticket.channel
           );
           if (chan) await chan.delete('Ticket closed due to inactivity');
-          await this.loggingChannel?.send(
-            `SYSTEM - closed support-ticket-${ticket.id}`
-          );
         }
       }
     };
-    this.gc = setInterval(async () => await collector(), 900000);
+    await collector();
+    setInterval(async () => await collector(), 900000);
   }
 
   private async load(guild: Guild | undefined) {
@@ -553,31 +642,36 @@ export default class SupportHandler {
         if (data.openTickets) {
           for (let ticketId of Object.keys(data.openTickets)) {
             const ticket: SupportTicket = data.openTickets[ticketId];
-            if (this.channels.indexOf(ticket.channel) === -1) {
-              let chan: GuildChannel | undefined = guild.channels.cache.find(
-                (target) => target.id === ticket.channel
-              );
-              if (chan) {
-                this.channels.push(ticket.channel);
-                this.ticketsMap.set(ticket.id, ticket);
-                if (this.tickets.indexOf(ticket.id) === -1) {
-                  this.tickets.push(ticket.id);
-                }
-                if (this.users.indexOf(ticket.user) === -1) {
-                  this.users.push(ticket.user);
-                }
-                if (this.channels.indexOf(ticket.channel) === -1) {
-                  this.channels.push(ticket.channel);
-                }
-                if (parseInt(ticket.id) > lastTicketNum) {
-                  this.lastTicket = parseInt(ticket.id);
-                  lastTicketNum = parseInt(ticket.id);
-                }
-              } else {
-                let role = guild.roles.cache.find(
-                  (role) => role.name === `support-ticket-${ticket.id}`
+            const existing: SupportTicket | undefined = this.getTicketById(
+              ticketId
+            );
+            if (!existing) {
+              if (this.channels.indexOf(ticket.channel) === -1) {
+                let chan: GuildChannel | undefined = guild.channels.cache.find(
+                  (target) => target.id === ticket.channel
                 );
-                if (role) await role.delete('Channel Deleted');
+                if (chan) {
+                  this.channels.push(ticket.channel);
+                  this.ticketsMap.set(ticket.id, ticket);
+                  if (this.tickets.indexOf(ticket.id) === -1) {
+                    this.tickets.push(ticket.id);
+                  }
+                  if (this.users.indexOf(ticket.user) === -1) {
+                    this.users.push(ticket.user);
+                  }
+                  if (this.channels.indexOf(ticket.channel) === -1) {
+                    this.channels.push(ticket.channel);
+                  }
+                  if (parseInt(ticket.id) > lastTicketNum) {
+                    this.lastTicket = parseInt(ticket.id);
+                    lastTicketNum = parseInt(ticket.id);
+                  }
+                } else {
+                  let role = guild.roles.cache.find(
+                    (role) => role.name === `support-ticket-${ticket.id}`
+                  );
+                  if (role) await role.delete('Channel Deleted');
+                }
               }
             }
           }
@@ -591,9 +685,9 @@ export default class SupportHandler {
 
   public async save() {
     let openTickets: any = {};
-    this.tickets.map((ticket) => {
+    for (let ticket of this.tickets) {
       openTickets[ticket] = this.ticketsMap.get(ticket);
-    });
+    }
     fs.writeFile(
       supportDataFile,
       JSON.stringify(
