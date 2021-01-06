@@ -60,11 +60,10 @@ SUPER_ADMIN=412122437954830337
 ### Commands
 
 ```md
-^stop - stops the bot
-
-- usage: stop
   ^help - displays this text, or help for a specific command if an argument is provided
 - usage: help (command)
+  ^stop - stops the bot
+- usage: stop
   ^enablecommand - enables a registered command
 - usage: enablecommand <command>
   ^disablecommand - disables a registered command
