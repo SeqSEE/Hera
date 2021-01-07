@@ -22,12 +22,7 @@
 
 import DiscordHandler from '../../DiscordHandler';
 import MessageObject from '../../../interface/MessageObject';
-import {
-  EmbedField,
-  EmbedFieldData,
-  MessageEmbed,
-  TextChannel,
-} from 'discord.js';
+import { EmbedFieldData, MessageEmbed, TextChannel } from 'discord.js';
 import CommandHandler from '../../CommandHandler';
 import Command from '../../Command';
 
