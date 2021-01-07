@@ -1,16 +1,16 @@
 # Hera
 
-![Hera](https://raw.githubusercontent.com/SeqSEE/Hera/master/defaultIcon.png)  
+![Hera](defaultIcon.png)  
 Hera is the goddess of mothers, marriage and family – she is here to offer support.
 
 ### Prerequisites
 
-- [NodeJS 12+](https://nodejs.org/en/download/)
+- [NodeJS 14+](https://nodejs.org/en/download/)
 - [TypeScript](https://www.typescriptlang.org/#installation)
 - [Discord API Key](https://discord.com/developers/applications)
 - [Discord Guild](https://support.discord.com/hc/en-us/articles/204849977-How-do-I-create-a-server-)
 - [Channel Category](https://support.discord.com/hc/en-us/articles/115001580171-Channel-Categories-101)
-
+____
 ### Setup
 
 - note your api key for the bot and invite the bot to your guild
@@ -44,7 +44,7 @@ npm run build
 npm run start
 ```
 
-- edit the configuration file with your configuration details for you `API_KEY`, `GUILD_ID`, `SUPPORT_CATEGORY`, and `SUPER_ADMIN`
+- edit the ``.env`` configuration file with your configuration details for you `API_KEY`, `GUILD_ID`, `SUPPORT_CATEGORY`, and `SUPER_ADMIN`
 
 ```
 DEBUG=1
@@ -56,15 +56,14 @@ GUILD_ID=123456789
 SUPPORT_CATEGORY=123456789
 SUPER_ADMIN=412122437954830337
 ```
-
+____
 ### Commands
 
 ```md
-^stop - stops the bot
-
-- usage: stop
   ^help - displays this text, or help for a specific command if an argument is provided
 - usage: help (command)
+  ^stop - stops the bot
+- usage: stop
   ^enablecommand - enables a registered command
 - usage: enablecommand <command>
   ^disablecommand - disables a registered command
