@@ -22,7 +22,7 @@
 
 import DiscordHandler from '../../DiscordHandler';
 import MessageObject from '../../../interface/MessageObject';
-import { TextChannel, User } from 'discord.js';
+import { GuildChannel, Role, TextChannel, User } from 'discord.js';
 import CommandHandler from '../../CommandHandler';
 
 export async function removeadmin(
@@ -74,6 +74,24 @@ export async function removeadmin(
           else if (user) user.send(`Error: '${m[1]}' is not an admin`);
         } else {
           cmdHandler.removeAdmin(u.id);
+          if (chan instanceof GuildChannel) {
+            let helper:
+              | Role
+              | undefined = (chan as GuildChannel).guild.roles.cache.find(
+              (role) => role.name === 'heras-helper'
+            );
+            let logs:
+              | Role
+              | undefined = (chan as GuildChannel).guild.roles.cache.find(
+              (role) => role.name === 'support-ticket-logs'
+            );
+
+            let member = await (chan as GuildChannel).guild.members.fetch(u);
+            if (member) {
+              if (helper instanceof Role) await member.roles.remove(helper);
+              if (logs instanceof Role) await member.roles.remove(logs);
+            }
+          }
           if (chan) chan.send(`Removed <@${u.id}> from admins`);
           else if (user) user.send(`Removed <@${u.id}> from admins`);
         }

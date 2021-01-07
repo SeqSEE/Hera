@@ -326,20 +326,7 @@ export default class SupportHandler {
         reason: 'Created by Hera for a support ticket',
       });
     }
-    let helperRole: Role | undefined = guild.roles.cache.find(
-      (role) => role.name === `heras-helper`
-    );
-
-    if (!helperRole) {
-      let roleData: RoleData = {
-        name: `heras-helper`,
-        mentionable: true,
-      };
-      helperRole = await guild.roles.create({
-        data: roleData,
-        reason: 'Created by Hera for her helpers',
-      });
-    }
+    let helperRole = await this.getOrCreateHelperRole(guild);
     let target = await guild.members.fetch(user.id);
     if (target) await target.roles.add(supportRole as Role);
     let everyone = guild.roles.everyone;
@@ -389,7 +376,7 @@ export default class SupportHandler {
         fields: [
           {
             name: `** **`,
-            value: `<@&${helperRole.id}>`,
+            value: `<@&${helperRole?.id}>`,
             inline: false,
           },
           {
@@ -434,6 +421,42 @@ export default class SupportHandler {
     await this.save();
   }
 
+  public async getOrCreateHelperRole(guild: Guild): Promise<Role | undefined> {
+    let helperRole: Role | undefined = guild.roles.cache.find(
+      (role) => role.name === `heras-helper`
+    );
+
+    if (!helperRole) {
+      let roleData: RoleData = {
+        name: `heras-helper`,
+        mentionable: true,
+      };
+      helperRole = await guild.roles.create({
+        data: roleData,
+        reason: 'Created by Hera for her helpers',
+      });
+    }
+    return helperRole;
+  }
+
+  public async getOrCreateLogsRole(guild: Guild): Promise<Role | undefined> {
+    let logsRole: Role | undefined = guild.roles.cache.find(
+      (role) => role.name === `support-ticket-logs`
+    );
+
+    if (!logsRole) {
+      let roleData: RoleData = {
+        name: `support-ticket-logs`,
+        mentionable: false,
+      };
+      logsRole = await guild.roles.create({
+        data: roleData,
+        reason: 'Created by Hera for a support ticket',
+      });
+    }
+    return logsRole;
+  }
+
   public async archiveSupportTicket(id: string, guild: Guild) {
     const ticket: SupportTicket | undefined = this.getTicketById(id);
     if (ticket) {
@@ -448,38 +471,25 @@ export default class SupportHandler {
   private async createLoggingChannel(guild: Guild) {
     this.loggingChannel = await guild.channels.create('ticket-logs');
     this.loggingChannel.setParent(this.supportCategory as CategoryChannel);
-    let supportRole: Role | undefined = guild.roles.cache.find(
-      (role) => role.name === `support-ticket-logs`
-    );
-
-    if (!supportRole) {
-      let roleData: RoleData = {
-        name: `support-ticket-logs`,
-        mentionable: false,
-      };
-      supportRole = await guild.roles.create({
-        data: roleData,
-        reason: 'Created by Hera for a support ticket',
-      });
-    }
+    let logsRole: Role | undefined = await this.getOrCreateLogsRole(guild);
 
     let everyone = guild.roles.everyone;
     let hera = await guild.members.fetch(this.client.user as User);
     this.cmdHandler.getAdmins().forEach(async (admin) => {
       let target = await guild.members.fetch(admin);
-      if (target) await target.roles.add(supportRole as Role);
+      if (target) await target.roles.add(logsRole as Role);
     });
     let super_admin = await guild?.members.fetch(
       process.env.SUPER_ADMIN as string
     );
-    if (super_admin) await super_admin.roles.add(supportRole as Role);
+    if (super_admin) await super_admin.roles.add(logsRole as Role);
     await this.loggingChannel.updateOverwrite(hera.roles.highest as Role, {
       READ_MESSAGE_HISTORY: true,
       VIEW_CHANNEL: true,
       SEND_MESSAGES: true,
       ADD_REACTIONS: true,
     });
-    await this.loggingChannel.updateOverwrite(supportRole as Role, {
+    await this.loggingChannel.updateOverwrite(logsRole as Role, {
       READ_MESSAGE_HISTORY: true,
       VIEW_CHANNEL: true,
       SEND_MESSAGES: true,
@@ -497,20 +507,7 @@ export default class SupportHandler {
     this.supportChannel = await guild.channels.create('support');
     this.supportChannel.setParent(this.supportCategory as CategoryChannel);
 
-    let helperRole: Role | undefined = guild.roles.cache.find(
-      (role) => role.name === `heras-helper`
-    );
-
-    if (!helperRole) {
-      let roleData: RoleData = {
-        name: `heras-helper`,
-        mentionable: true,
-      };
-      helperRole = await guild.roles.create({
-        data: roleData,
-        reason: 'Created by Hera for her helpers',
-      });
-    }
+    let helperRole: Role | undefined = await this.getOrCreateHelperRole(guild);
     let everyone = guild.roles.everyone;
     let hera = await guild.members.fetch(this.client.user as User);
     this.cmdHandler.getAdmins().forEach(async (admin) => {

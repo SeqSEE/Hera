@@ -22,7 +22,7 @@
 
 import DiscordHandler from '../../DiscordHandler';
 import MessageObject from '../../../interface/MessageObject';
-import { TextChannel, User } from 'discord.js';
+import { GuildChannel, Role, TextChannel, User } from 'discord.js';
 import CommandHandler from '../../CommandHandler';
 
 export async function addadmin(
@@ -74,6 +74,23 @@ export async function addadmin(
           else if (user) user.send(`Error: '${m[1]}' is already an admin`);
         } else {
           cmdHandler.addAdmin(u.id);
+          let helper:
+            | Role
+            | undefined = (chan as GuildChannel).guild.roles.cache.find(
+            (role) => role.name === 'heras-helper'
+          );
+          let logs:
+            | Role
+            | undefined = (chan as GuildChannel).guild.roles.cache.find(
+            (role) => role.name === 'support-ticket-logs'
+          );
+
+          let member = await (chan as GuildChannel).guild.members.fetch(u);
+          if (member) {
+            if (helper instanceof Role) await member.roles.add(helper);
+            if (logs instanceof Role) await member.roles.add(logs);
+          }
+
           if (chan) chan.send(`Added <@${u.id}> to admins`);
           else if (user) user.send(`Added <@${u.id}> to admins`);
         }
