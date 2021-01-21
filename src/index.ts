@@ -70,7 +70,7 @@ let start = async (disabled: string[], admins: string[]) => {
       console.log(`${Date()} Logged in as ${client.user!.tag}!`);
 
     supportHandler = new SupportHandler(client, cmdHandler);
-
+    commands.setSupportHandler(supportHandler);
     client
       .user!.setStatus('online')
       .catch(console.log)

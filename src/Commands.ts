@@ -26,14 +26,19 @@ import CommandHandler from './internal/CommandHandler';
 import MessageHandler from './internal/MessageHandler';
 import MessageObject from './interface/MessageObject';
 import { ping } from './commands/example/ping';
+import { setowner } from './commands/hera/setowner';
+import SupportHandler from './SupportHandler';
+import { env } from 'process';
 
 export default class Commands extends InternalCommands {
+  private supportHandler: SupportHandler | undefined;
   constructor(
     discord: DiscordHandler,
     cmdHandler: CommandHandler,
     msgHandler: MessageHandler
   ) {
     super(discord, cmdHandler, msgHandler);
+    this.supportHandler = undefined;
   }
   public async registerCommands(): Promise<void> {
     await super.registerCommands(); //register the internal commands first
@@ -47,5 +52,31 @@ export default class Commands extends InternalCommands {
         return ping(this.getDiscord(), messageObj);
       }
     );
+    this.registerCommand(
+      'setowner',
+      'setowner <discord id or mention>',
+      ['owner'],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(
+            `${Date()} author: ${messageObj.author} command: setowner`
+          );
+        if (this.supportHandler != undefined) {
+          return setowner(
+            this.getDiscord(),
+            this.getCommandHandler(),
+            this.supportHandler,
+            messageObj
+          );
+        }
+      }
+    );
+  }
+  public getSupportHandler(): SupportHandler | undefined {
+    return this.supportHandler;
+  }
+
+  public setSupportHandler(supportHandler: SupportHandler) {
+    this.supportHandler = supportHandler;
   }
 }

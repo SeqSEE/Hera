@@ -102,6 +102,48 @@ export default class SupportHandler {
     this.setup();
   }
 
+  public getTicketByChannel(id: string): SupportTicket | undefined {
+    if (this.channels.indexOf(id) === -1) return undefined;
+    for (let t of this.tickets) {
+      const ticket = this.ticketsMap.get(t);
+      if (ticket) {
+        if (ticket.channel === id) {
+          return ticket;
+        }
+      }
+    }
+    return undefined;
+  }
+
+  public async updateOwner(user: User, ticket: SupportTicket) {
+    const member = await this.supportChannel?.guild.members.fetch(user);
+    const oldMember = await this.supportChannel?.guild.members.fetch(
+      ticket.user
+    );
+    ticket.user = user.id;
+    this.ticketsMap.set(ticket.id, ticket);
+    const supportRole:
+      | Role
+      | undefined = this.supportChannel?.guild.roles.cache.find(
+      (role) => role.name === `support-ticket-${ticket.id}`
+    );
+
+    if (supportRole != undefined) {
+      if (oldMember != undefined)
+        await oldMember.roles.remove(
+          supportRole,
+          'Remvoved user as the owner of a ticket'
+        );
+
+      if (member != undefined)
+        await member.roles.add(
+          supportRole,
+          'Assigned user the owner of a support ticket'
+        );
+    }
+    await this.save();
+  }
+
   private async setup() {
     this.client.on(
       'messageDelete',
@@ -542,7 +584,7 @@ export default class SupportHandler {
     if (messageObj.author === this.client.user?.id) return;
     for (let id of this.tickets) {
       const ticket: SupportTicket | undefined = this.ticketsMap.get(id);
-      if (ticket && ticket.user === messageObj.author) {
+      if (ticket) {
         ticket.lastUpdate = Math.round(new Date().getTime() / 1000);
         this.ticketsMap.set(id, ticket);
         await this.save();
