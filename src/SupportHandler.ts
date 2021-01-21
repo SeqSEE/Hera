@@ -116,32 +116,43 @@ export default class SupportHandler {
   }
 
   public async updateOwner(user: User, ticket: SupportTicket) {
-    const member = await this.supportChannel?.guild.members.fetch(user);
-    const oldMember = await this.supportChannel?.guild.members.fetch(
-      ticket.user
-    );
-    ticket.user = user.id;
-    this.ticketsMap.set(ticket.id, ticket);
-    const supportRole:
-      | Role
-      | undefined = this.supportChannel?.guild.roles.cache.find(
-      (role) => role.name === `support-ticket-${ticket.id}`
-    );
-
-    if (supportRole != undefined) {
-      if (oldMember != undefined)
-        await oldMember.roles.remove(
-          supportRole,
-          'Remvoved user as the owner of a ticket'
+    try {
+      const member = await this.supportChannel?.guild.members.fetch(user);
+      const oldMember = await this.supportChannel?.guild.members.fetch(
+        ticket.user
+      );
+      const userIndex = this.users.indexOf(ticket.user as string);
+      if (userIndex === -1) {
+        ticket.user = user.id;
+        this.ticketsMap.set(ticket.id, ticket);
+        const supportRole:
+          | Role
+          | undefined = this.supportChannel?.guild.roles.cache.find(
+          (role) => role.name === `support-ticket-${ticket.id}`
         );
 
-      if (member != undefined)
-        await member.roles.add(
-          supportRole,
-          'Assigned user the owner of a support ticket'
-        );
+        if (supportRole != undefined) {
+          if (oldMember != undefined)
+            await oldMember.roles.remove(
+              supportRole,
+              'Remvoved user as the owner of a ticket'
+            );
+
+          if (member != undefined)
+            await member.roles.add(
+              supportRole,
+              'Assigned user the owner of a support ticket'
+            );
+        }
+        await this.save();
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log(e);
+      return false;
     }
-    await this.save();
   }
 
   private async setup() {

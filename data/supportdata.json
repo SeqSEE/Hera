@@ -2,13 +2,5 @@
   "loggingChannel": "796098819062235136",
   "supportChannel": "796098801722064966",
   "supportMessage": "796098861185761312",
-  "openTickets": {
-    "1": {
-      "id": "1",
-      "user": "500376620708659212",
-      "channel": "801712356190846977",
-      "controlMessage": "801712359034322976",
-      "lastUpdate": 1611214667
-    }
-  }
+  "openTickets": {}
 }

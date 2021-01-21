@@ -72,9 +72,19 @@ export async function setowner(
         if (chan) chan.send(`Error: Invalid user ${m[1]}`);
         else if (user) user.send(`Error: Invalid user ${m[1]}`);
       } else {
-        await supportHandler.updateOwner(u, ticket);
-        if (chan) chan.send(`Updated the user to ${m[1]}`);
-        else if (user) user.send(`Updated the user to ${m[1]}`);
+        if (await supportHandler.updateOwner(u, ticket)) {
+          if (chan) chan.send(`Updated the user to ${m[1]}`);
+          else if (user) user.send(`Updated the user to ${m[1]}`);
+        } else {
+          if (chan)
+            chan.send(
+              `Failed to update the user to ${m[1]}. They may have a ticket open already.`
+            );
+          else if (user)
+            user.send(
+              `Failed to update the user to ${m[1]}. They may have a ticket open already.`
+            );
+        }
       }
     }
   } else {
