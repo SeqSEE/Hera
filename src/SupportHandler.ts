@@ -121,8 +121,10 @@ export default class SupportHandler {
       const oldMember = await this.supportChannel?.guild.members.fetch(
         ticket.user
       );
-      const userIndex = this.users.indexOf(ticket.user as string);
+      const userIndex = this.users.indexOf(user.id);
       if (userIndex === -1) {
+        const ticketUser = this.users.indexOf(ticket.user);
+        this.users.splice(ticketUser, 1);
         ticket.user = user.id;
         this.ticketsMap.set(ticket.id, ticket);
         const supportRole:
