@@ -441,7 +441,7 @@ export default class SupportHandler {
           },
           {
             name: `**Communication is key**`,
-            value: `Failure to communicate within the ticket channel will result in your issue being automatically closed after 24 hours of non-communication.`,
+            value: `Failure to communicate within the ticket channel will result in your issue being closed after 24 hours of non-communication.`,
             inline: false,
           },
           {
