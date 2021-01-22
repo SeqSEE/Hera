@@ -59,7 +59,7 @@ const supportEmbed = {
       },
       {
         name: `**Communication is key**`,
-        value: `Failure to communicate within the ticket channel will result in your issue being automatically closed after 24 hours of non-communication.`,
+        value: `Failure to communicate within the ticket channel will result in your issue being closed after 24 hours of non-communication.`,
         inline: false,
       },
       {
@@ -607,18 +607,20 @@ export default class SupportHandler {
 
   private async startGC() {
     let collector = async () => {
-      for (let id of this.tickets) {
-        const ticket: SupportTicket | undefined = this.getTicketById(id);
-        if (
-          ticket &&
-          Math.round(new Date().getTime() / 1000) - ticket.lastUpdate > 86400
-        ) {
-          const chan:
-            | GuildChannel
-            | undefined = this.supportChannel?.guild.channels.cache.get(
-            ticket.channel
-          );
-          if (chan) await chan.delete('Ticket closed due to inactivity');
+      if (((process.env.AUTO_CLOSE as unknown) as number) === 1) {
+        for (let id of this.tickets) {
+          const ticket: SupportTicket | undefined = this.getTicketById(id);
+          if (
+            ticket &&
+            Math.round(new Date().getTime() / 1000) - ticket.lastUpdate > 86400
+          ) {
+            const chan:
+              | GuildChannel
+              | undefined = this.supportChannel?.guild.channels.cache.get(
+              ticket.channel
+            );
+            if (chan) await chan.delete('Ticket closed due to inactivity');
+          }
         }
       }
     };
