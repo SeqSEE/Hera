@@ -50,6 +50,7 @@ npm run start
 
 ```
 DEBUG=1
+AUTO_CLOSE_TICKET=1
 BOT_NAME=Hera
 CMD_PREFIX=^
 API_KEY=somekey
