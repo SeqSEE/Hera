@@ -607,7 +607,7 @@ export default class SupportHandler {
 
   private async startGC() {
     let collector = async () => {
-      if (((process.env.AUTO_CLOSE as unknown) as number) === 1) {
+      if (((process.env.AUTO_CLOSE_TICKET as unknown) as number) === 1) {
         for (let id of this.tickets) {
           const ticket: SupportTicket | undefined = this.getTicketById(id);
           if (
