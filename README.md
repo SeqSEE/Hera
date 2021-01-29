@@ -1,7 +1,8 @@
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/SeqSEE/Hera) [![GitHub license](https://img.shields.io/github/license/SeqSEE/Hera)](https://github.com/SeqSEE/Hera/blob/master/LICENSE.md) ![Node.js CI](https://github.com/SeqSEE/Hera/workflows/Node.js%20CI/badge.svg) ![CodeQL](https://github.com/SeqSEE/Hera/workflows/CodeQL/badge.svg) [![GitHub issues](https://img.shields.io/github/issues/SeqSEE/Hera)](https://github.com/SeqSEE/Hera/issues)  
 # Hera
 
 ![Hera](defaultIcon.png)  
-Hera is the goddess of mothers, marriage and family – she is here to offer support.
+Hera is the goddess of mothers, marriage and family – she is here to offer support.  
 
 ### Prerequisites
 
