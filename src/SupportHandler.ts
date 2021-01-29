@@ -597,7 +597,7 @@ export default class SupportHandler {
     if (messageObj.author === this.client.user?.id) return;
     for (let id of this.tickets) {
       const ticket: SupportTicket | undefined = this.ticketsMap.get(id);
-      if (ticket) {
+      if (ticket?.channel === messageObj.channel) {
         ticket.lastUpdate = Math.round(new Date().getTime() / 1000);
         this.ticketsMap.set(id, ticket);
         await this.save();
