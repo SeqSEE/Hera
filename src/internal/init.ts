@@ -36,7 +36,7 @@ export default async function init(
   try {
     if (fs.existsSync(config)) {
       const envConf = dotenv.config();
-      if (((process.env.DEBUG as unknown) as number) === 1)
+      if (Number(process.env.DEBUG as string) === 1)
         console.log(`Found .env configuration file`);
       let s: (disabled: string[], admins: string[]) => void;
 
@@ -85,7 +85,7 @@ export default async function init(
           disabled = JSON.parse(
             fs.readFileSync(disabledCommandsFile).toString('utf8')
           );
-          if (((process.env.DEBUG as unknown) as number) === 1)
+          if (Number(process.env.DEBUG as string) === 1)
             console.log(`Disabled commands:\n ${disabled}`);
         }
         s(disabled, admins);

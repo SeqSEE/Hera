@@ -45,7 +45,7 @@ export default class DiscordUtil {
 
   public setStatus(data: PresenceData): void {
     this.getClient().user!.setPresence(data);
-    if (((process.env.DEBUG as unknown) as number) === 1)
+    if (Number(process.env.DEBUG as string) === 1)
       console.log(`${Date()} setStatus(${JSON.stringify(data)}: PresenceData)`);
   }
 

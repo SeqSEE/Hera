@@ -215,7 +215,7 @@ export default class SupportHandler {
       await this.supportMessage?.react('❓');
       await this.save();
     }
-    this.startGC();
+    await this.startGC();
   }
 
   private async handleReaction(user: User, reaction: MessageReaction) {
@@ -607,7 +607,7 @@ export default class SupportHandler {
 
   private async startGC() {
     let collector = async () => {
-      if (((process.env.AUTO_CLOSE_TICKET as unknown) as number) === 1) {
+      if (Number(process.env.AUTO_CLOSE_TICKET as string) === 1) {
         for (let id of this.tickets) {
           const ticket: SupportTicket | undefined = this.getTicketById(id);
           if (

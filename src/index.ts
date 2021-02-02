@@ -46,7 +46,7 @@ let start = async (disabled: string[], admins: string[]) => {
     let cmd = cmdHandler.getCommandsMap().get(`${d as string}`);
     if (cmd) {
       cmd.setEnabled(false);
-      if (Number(process.env.DEBUG as unknown) === 1)
+      if (Number(process.env.DEBUG as string) === 1)
         console.log(`${Date()} Disabled ${cmd.getName()}`);
     }
   });
@@ -66,7 +66,7 @@ let start = async (disabled: string[], admins: string[]) => {
   });
 
   client.on('ready', async () => {
-    if (((process.env.DEBUG as unknown) as number) === 1)
+    if (Number(process.env.DEBUG as string) === 1)
       console.log(`${Date()} Logged in as ${client.user!.tag}!`);
 
     supportHandler = new SupportHandler(client, cmdHandler);
@@ -75,7 +75,7 @@ let start = async (disabled: string[], admins: string[]) => {
       .user!.setStatus('online')
       .catch(console.log)
       .then(() => {
-        if (((process.env.DEBUG as unknown) as number) === 1) console.log;
+        if (Number(process.env.DEBUG as string) === 1) console.log;
         discord.util.setStatus({
           status: 'online',
           activity: {
