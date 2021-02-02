@@ -1,6 +1,6 @@
 {
   "name": "hera",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "description": "Hera is the goddess of mothers, marriage and family – she is here to offer support.",
   "main": "dist/index.js",
   "scripts": {
