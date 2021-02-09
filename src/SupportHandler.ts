@@ -115,7 +115,22 @@ export default class SupportHandler {
     return undefined;
   }
 
-  public async updateOwner(user: User, ticket: SupportTicket) {
+  public async updateTopic(
+    topic: string,
+    ticket: SupportTicket
+  ): Promise<boolean> {
+    const chan = this.supportChannel?.guild.channels.cache.get(ticket.channel);
+    if (chan) {
+      await chan.setName(topic);
+      return true;
+    }
+    return false;
+  }
+
+  public async updateOwner(
+    user: User,
+    ticket: SupportTicket
+  ): Promise<boolean> {
     try {
       const member = await this.supportChannel?.guild.members.fetch(user);
       const oldMember = await this.supportChannel?.guild.members.fetch(

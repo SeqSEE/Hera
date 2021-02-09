@@ -29,6 +29,7 @@ import { ping } from './commands/example/ping';
 import { setowner } from './commands/hera/setowner';
 import SupportHandler from './SupportHandler';
 import { env } from 'process';
+import { settopic } from './commands/hera/settopic';
 
 export default class Commands extends InternalCommands {
   private supportHandler: SupportHandler | undefined;
@@ -63,6 +64,25 @@ export default class Commands extends InternalCommands {
           );
         if (this.supportHandler != undefined) {
           return setowner(
+            this.getDiscord(),
+            this.getCommandHandler(),
+            this.supportHandler,
+            messageObj
+          );
+        }
+      }
+    );
+    this.registerCommand(
+      'settopic',
+      'settopic <topic>',
+      ['topic'],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(
+            `${Date()} author: ${messageObj.author} command: settopic`
+          );
+        if (this.supportHandler != undefined) {
+          return settopic(
             this.getDiscord(),
             this.getCommandHandler(),
             this.supportHandler,
