@@ -22,7 +22,7 @@
 
 import DiscordHandler from '../../internal/DiscordHandler';
 import MessageObject from '../../interface/MessageObject';
-import { TextChannel, User } from 'discord.js';
+import { TextChannel } from 'discord.js';
 import CommandHandler from '../../internal/CommandHandler';
 import SupportHandler from '../../SupportHandler';
 
@@ -58,7 +58,7 @@ export async function settopic(
         );
     } else {
       m.shift();
-      const topic = m.join('-').substring(0, 32);
+      const topic = `${ticket.id}-${m.join('-').substring(0, 32)}`;
       if (topic.length > 0) {
         if (await supportHandler.updateTopic(topic, ticket)) {
           if (chan) chan.send(`Updated the topic to ${topic}`);
@@ -66,11 +66,11 @@ export async function settopic(
         } else {
           if (chan)
             chan.send(
-              `Failed to update the user to ${m[1]}. They may have a ticket open already.`
+              `Failed to update the topic to ${topic}. They may have a ticket open already.`
             );
           else if (user)
             user.send(
-              `Failed to update the user to ${m[1]}. They may have a ticket open already.`
+              `Failed to update the topic to ${topic}. They may have a ticket open already.`
             );
         }
       } else {
