@@ -42,9 +42,9 @@ export async function support(this: any,
     );
     if(guild == undefined) {
       if (chan)
-       await chan.send(`${messageObj.author} your ticket could not be created`);
+       await chan.send(`<@${messageObj.author}> your ticket could not be created`);
       else if (user)
-       await user.send(`${messageObj.author} your ticket could not be created`);
+       await user.send(`<@${messageObj.author}> your ticket could not be created`);
     } 
     else {
       await supportHandler.createSupportTicket(guild, user);
@@ -52,9 +52,9 @@ export async function support(this: any,
   }
   else {
     if (chan)
-       await chan.send(`${messageObj.author} you already have an open ticket`);
+       await chan.send(`<@${messageObj.author}> you already have an open ticket`);
       else if (user)
-       await user.send(`${messageObj.author} you already have an open ticket`);
+       await user.send(`<@${messageObj.author}> you already have an open ticket`);
   }
 
 }
