@@ -309,7 +309,7 @@ export default class SupportHandler {
     return ticket;
   }
 
-  private getTicketByUserId(id: string): SupportTicket | undefined {
+  public getTicketByUserId(id: string): SupportTicket | undefined {
     let ticket: SupportTicket | undefined = undefined;
     for (let t of this.tickets) {
       const tick: SupportTicket | undefined = this.ticketsMap.get(t);
@@ -371,7 +371,7 @@ export default class SupportHandler {
     }
   }
 
-  private async createSupportTicket(guild: Guild, user: User) {
+  public async createSupportTicket(guild: Guild, user: User) {
     const tick = ++this.lastTicket;
     this.users.push(user.id);
     let supportChannel = await guild.channels.create(`support-ticket-${tick}`);
