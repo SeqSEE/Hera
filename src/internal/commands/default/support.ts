@@ -22,6 +22,7 @@
 
 import { Guild, TextChannel } from "discord.js";
 import MessageObject from "../../../interface/MessageObject";
+import SupportTicket from "../../../interface/SupportTicket";
 import SupportHandler from "../../../SupportHandler";
 import DiscordHandler from "../../DiscordHandler";
 
@@ -34,18 +35,26 @@ export async function support(this: any,
   let c = await discord.getClient().channels.fetch(messageObj.channel);
   let chan: TextChannel | null =
     c instanceof TextChannel ? (c as TextChannel) : null;
-  
-  supportHandler.getTicketByUserId(messageObj.author);
-  const guild: Guild | undefined = this.client.guilds.cache.get(
-    process.env.GUILD_ID as string
+  const ticket: SupportTicket | undefined = supportHandler.getTicketByUserId(messageObj.author); 
+  if(ticket === undefined){
+    const guild: Guild | undefined = this.client.guilds.cache.get(
+      process.env.GUILD_ID as string
     );
-  if(guild == undefined) {
+    if(guild == undefined) {
+      if (chan)
+       await chan.send(`${messageObj.author} your ticket could not be created`);
+      else if (user)
+       await user.send(`${messageObj.author} your ticket could not be created`);
+    } 
+    else {
+      await supportHandler.createSupportTicket(guild, user);
+    }
+  }
+  else {
     if (chan)
-     await chan.send(`${messageObj.author} you already have an open ticket`);
-    else if (user)
-     await user.send(`${messageObj.author} you already have an open ticket`);
-  } else {
-    await supportHandler.createSupportTicket(guild, user);
+       await chan.send(`${messageObj.author} you already have an open ticket`);
+      else if (user)
+       await user.send(`${messageObj.author} you already have an open ticket`);
   }
 
 }
