@@ -31,6 +31,7 @@ import SupportHandler from './SupportHandler';
 import { env } from 'process';
 import { settopic } from './commands/hera/settopic';
 import { support } from './commands/hera/support';
+import { resolve } from './commands/hera/resolve';
 
 export default class Commands extends InternalCommands {
   private supportHandler: SupportHandler | undefined;
@@ -103,6 +104,25 @@ export default class Commands extends InternalCommands {
           );
         if (this.supportHandler != undefined) {
           return support(this.getDiscord(), this.supportHandler, messageObj);
+        }
+      }
+    );
+    this.registerCommand(
+      'resolve',
+      'resolve',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(
+            `${Date()} author: ${messageObj.author} command: resolve`
+          );
+        if (this.supportHandler != undefined) {
+          return resolve(
+            this.getDiscord(),
+            this.getCommandHandler(),
+            this.supportHandler,
+            messageObj
+          );
         }
       }
     );
