@@ -50,11 +50,6 @@ export default async function init(
           console.log(`GUILD_ID is undefined`);
           process.exit(1);
         };
-      } else if (process.env.SUPPORT_CATEGORY == undefined) {
-        s = () => {
-          console.log(`SUPPORT_CATEGORY is undefined`);
-          process.exit(1);
-        };
       } else if (process.env.SUPER_ADMIN == undefined) {
         s = () => {
           console.log(`SUPER_ADMIN is undefined`);
