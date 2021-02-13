@@ -371,7 +371,11 @@ export default class SupportHandler {
 
         const resolveMessage = await (chan as TextChannel).send(resolveEmbed);
         await resolveMessage.react('❌');
-        const oldMessage = chan.messages.cache.get(ticket.controlMessage);
+        const oldMessage = await chan.messages.fetch(
+          ticket.controlMessage,
+          true
+        );
+
         if (oldMessage) await oldMessage.delete();
         this.ticketsMap.set(ticket.id, {
           id: ticket.id,
