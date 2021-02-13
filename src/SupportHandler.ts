@@ -616,6 +616,18 @@ export default class SupportHandler {
     });
   }
 
+  private async createSupportCategory(guild: Guild) {
+    this.supportCategory = await guild.channels.create(
+      'Support',
+
+      { type: 'category' }
+    );
+    if (!this.supportCategory) {
+      console.log(`ERROR: Failed to create the support category.`);
+      process.exit(1);
+    }
+  }
+
   private async createSupportChannel(guild: Guild) {
     this.supportChannel = await guild.channels.create('support');
     this.supportChannel.setParent(this.supportCategory as CategoryChannel);
@@ -688,20 +700,32 @@ export default class SupportHandler {
 
   private async load(guild: Guild | undefined) {
     if (guild) {
-      let cat = guild.channels.cache.get(
-        process.env.SUPPORT_CATEGORY as string
-      );
-      this.supportCategory =
-        cat instanceof CategoryChannel ? (cat as CategoryChannel) : undefined;
-      if (!this.supportCategory) {
-        console.log(`ERROR: Could not find the support category.`);
-        process.exit(1);
-      }
       if (fs.existsSync(supportDataFile)) {
         let data = JSON.parse(
           fs.readFileSync(supportDataFile).toString('utf8')
         );
 
+        if (data.supportCategory) {
+          let cat = guild.channels.cache.get(data.supportCategory);
+          this.supportCategory =
+            cat instanceof CategoryChannel
+              ? (cat as CategoryChannel)
+              : undefined;
+          if (!this.supportCategory) {
+            await this.createSupportCategory(guild);
+          }
+        } else if (process.env.SUPPORT_CATEGORY != undefined) {
+          let cat = guild.channels.cache.get(
+            process.env.SUPPORT_CATEGORY as string
+          );
+          this.supportCategory =
+            cat instanceof CategoryChannel
+              ? (cat as CategoryChannel)
+              : undefined;
+          if (!this.supportCategory) {
+            await this.createSupportCategory(guild);
+          }
+        }
         if (data.supportChannel) {
           let chan = guild.channels.cache.get(data.supportChannel);
           this.supportChannel =
@@ -807,6 +831,7 @@ export default class SupportHandler {
           loggingChannel: this.loggingChannel?.id,
           supportChannel: this.supportChannel?.id,
           supportMessage: this.supportMessage?.id,
+          supportCategory: this.supportCategory?.id,
           openTickets,
         },
         null,
