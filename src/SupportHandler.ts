@@ -342,6 +342,47 @@ export default class SupportHandler {
     return ticket;
   }
 
+  public async resolveSupportTicket(ticket: SupportTicket) {
+    const guild = this.client.guilds.cache.get(process.env.GUILD_ID as string);
+    if (guild) {
+      const chan = guild.channels.cache.get(ticket.channel);
+      if (chan instanceof TextChannel) {
+        let resolveEmbed = {
+          embed: {
+            color: 8359053,
+            author: {
+              name: process.env.BOT_NAME as string,
+              icon_url: process.env.ICON_URL as string,
+            },
+            title: `**Issue has been marked as resolved**`,
+            url: '',
+            description: `**Your issue has been marked as resolved.\nTo close this ticket react with ❌**`,
+            fields: [],
+            timestamp: new Date(),
+            image: {
+              url: '',
+            },
+            footer: {
+              iconURL: process.env.ICON_URL as string,
+              text: process.env.BOT_NAME as string,
+            },
+          },
+        };
+
+        const resolveMessage = await (chan as TextChannel).send(resolveEmbed);
+        await resolveMessage.react('❌');
+        this.ticketsMap.set(ticket.id, {
+          id: ticket.id,
+          user: ticket.user,
+          channel: ticket.channel,
+          controlMessage: resolveMessage.id,
+          lastUpdate: Math.round(new Date().getTime() / 1000),
+        });
+        await this.save();
+      }
+    }
+  }
+
   private async closeSupportTicket(
     channel: Channel | PartialDMChannel,
     message: string
