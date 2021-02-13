@@ -20,13 +20,13 @@
  THE SOFTWARE.
  */
 
-import { Guild, TextChannel } from "discord.js";
-import MessageObject from "../../interface/MessageObject";
-import SupportTicket from "../../interface/SupportTicket";
-import SupportHandler from "../../SupportHandler";
-import DiscordHandler from "../../internal/DiscordHandler";
+import { Guild, TextChannel } from 'discord.js';
+import MessageObject from '../../interface/MessageObject';
+import SupportTicket from '../../interface/SupportTicket';
+import SupportHandler from '../../SupportHandler';
+import DiscordHandler from '../../internal/DiscordHandler';
 
-export async function support(this: any, 
+export async function support(
   discord: DiscordHandler,
   supportHandler: SupportHandler,
   messageObj: MessageObject
@@ -35,26 +35,33 @@ export async function support(this: any,
   let c = await discord.getClient().channels.fetch(messageObj.channel);
   let chan: TextChannel | null =
     c instanceof TextChannel ? (c as TextChannel) : null;
-  const ticket: SupportTicket | undefined = supportHandler.getTicketByUserId(messageObj.author); 
-  if(ticket === undefined){
-    const guild: Guild | undefined = this.client.guilds.cache.get(
-      process.env.GUILD_ID as string
-    );
-    if(guild == undefined) {
+  const ticket: SupportTicket | undefined = supportHandler.getTicketByUserId(
+    messageObj.author
+  );
+  if (ticket === undefined) {
+    const guild: Guild | undefined = discord
+      .getClient()
+      .guilds.cache.get(process.env.GUILD_ID as string);
+    if (guild == undefined) {
       if (chan)
-       await chan.send(`<@${messageObj.author}> your ticket could not be created`);
+        await chan.send(
+          `<@${messageObj.author}> your ticket could not be created`
+        );
       else if (user)
-       await user.send(`<@${messageObj.author}> your ticket could not be created`);
-    } 
-    else {
+        await user.send(
+          `<@${messageObj.author}> your ticket could not be created`
+        );
+    } else {
       await supportHandler.createSupportTicket(guild, user);
     }
-  }
-  else {
+  } else {
     if (chan)
-       await chan.send(`<@${messageObj.author}> you already have an open ticket`);
-      else if (user)
-       await user.send(`<@${messageObj.author}> you already have an open ticket`);
+      await chan.send(
+        `<@${messageObj.author}> you already have an open ticket`
+      );
+    else if (user)
+      await user.send(
+        `<@${messageObj.author}> you already have an open ticket`
+      );
   }
-
 }
