@@ -91,6 +91,26 @@ export default class Commands extends InternalCommands {
         }
       }
     );
+    this.registerCommand(
+      'settopic',
+      'settopic <topic>',
+      ['topic'],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(
+            `${Date()} author: ${messageObj.author} command: settopic`
+          );
+        if (this.supportHandler != undefined) {
+          return settopic(
+            this.getDiscord(),
+            this.getCommandHandler(),
+            this.supportHandler,
+            messageObj
+          );
+        }
+      }
+    );
+    
   }
   public getSupportHandler(): SupportHandler | undefined {
     return this.supportHandler;
