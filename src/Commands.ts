@@ -30,6 +30,7 @@ import { setowner } from './commands/hera/setowner';
 import SupportHandler from './SupportHandler';
 import { env } from 'process';
 import { settopic } from './commands/hera/settopic';
+import { support } from './commands/hera/support';
 
 export default class Commands extends InternalCommands {
   private supportHandler: SupportHandler | undefined;
@@ -88,6 +89,20 @@ export default class Commands extends InternalCommands {
             this.supportHandler,
             messageObj
           );
+        }
+      }
+    );
+    this.registerCommand(
+      'support',
+      'support',
+      ['ticket'],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(
+            `${Date()} author: ${messageObj.author} command: support`
+          );
+        if (this.supportHandler != undefined) {
+          return support(this.getDiscord(), this.supportHandler, messageObj);
         }
       }
     );
