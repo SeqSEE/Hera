@@ -31,6 +31,7 @@ import SupportHandler from './SupportHandler';
 import settopic from './commands/hera/settopic';
 import support from './commands/hera/support';
 import resolve from './commands/hera/resolve';
+import stall from './commands/hera/stall';
 
 export default class Commands extends InternalCommands {
   private supportHandler: SupportHandler | undefined;
@@ -117,6 +118,23 @@ export default class Commands extends InternalCommands {
           );
         if (this.supportHandler != undefined) {
           return resolve(
+            this.getDiscord(),
+            this.getCommandHandler(),
+            this.supportHandler,
+            messageObj
+          );
+        }
+      }
+    );
+    this.registerCommand(
+      'stall',
+      'stall',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: stall`);
+        if (this.supportHandler != undefined) {
+          return stall(
             this.getDiscord(),
             this.getCommandHandler(),
             this.supportHandler,
