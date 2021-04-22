@@ -25,7 +25,7 @@ import { TextChannel } from 'discord.js';
 import CommandHandler from '../../internal/CommandHandler';
 import SupportHandler from '../../SupportHandler';
 
-export async function resolve(
+export default async function resolve(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
   supportHandler: SupportHandler,
@@ -46,6 +46,5 @@ export async function resolve(
   const ticket = supportHandler.getTicketByChannel(messageObj.channel);
   if (ticket) {
     await supportHandler.resolveSupportTicket(ticket);
-  } 
-  
+  }
 }

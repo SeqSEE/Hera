@@ -25,13 +25,12 @@ import DiscordHandler from './internal/DiscordHandler';
 import CommandHandler from './internal/CommandHandler';
 import MessageHandler from './internal/MessageHandler';
 import MessageObject from './interface/MessageObject';
-import { ping } from './commands/example/ping';
-import { setowner } from './commands/hera/setowner';
+import ping from './commands/example/ping';
+import setowner from './commands/hera/setowner';
 import SupportHandler from './SupportHandler';
-import { env } from 'process';
-import { settopic } from './commands/hera/settopic';
-import { support } from './commands/hera/support';
-import { resolve } from './commands/hera/resolve';
+import settopic from './commands/hera/settopic';
+import support from './commands/hera/support';
+import resolve from './commands/hera/resolve';
 
 export default class Commands extends InternalCommands {
   private supportHandler: SupportHandler | undefined;

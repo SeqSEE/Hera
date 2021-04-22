@@ -26,7 +26,7 @@ import { TextChannel, User } from 'discord.js';
 import CommandHandler from '../../internal/CommandHandler';
 import SupportHandler from '../../SupportHandler';
 
-export async function setowner(
+export default async function setowner(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
   supportHandler: SupportHandler,

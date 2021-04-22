@@ -26,7 +26,7 @@ import SupportTicket from '../../interface/SupportTicket';
 import SupportHandler from '../../SupportHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
 
-export async function support(
+export default async function support(
   discord: DiscordHandler,
   supportHandler: SupportHandler,
   messageObj: MessageObject
