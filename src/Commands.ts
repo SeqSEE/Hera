@@ -32,6 +32,7 @@ import { env } from 'process';
 import { settopic } from './commands/hera/settopic';
 import { support } from './commands/hera/support';
 import { resolve } from './commands/hera/resolve';
+import archive from './commands/hera/archive';
 
 export default class Commands extends InternalCommands {
   private supportHandler: SupportHandler | undefined;
@@ -123,6 +124,25 @@ export default class Commands extends InternalCommands {
             this.supportHandler,
             messageObj
           );
+        }
+      }
+    );
+    this.registerCommand(
+      'archive',
+      'archive',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(
+            `${Date()} author: ${messageObj.author} command: archive`
+          );
+          if (this.supportHandler != undefined) {
+            return archive(
+              this.getDiscord(),
+              this.getCommandHandler(),
+              this.supportHandler,
+              messageObj
+            );
         }
       }
     );
