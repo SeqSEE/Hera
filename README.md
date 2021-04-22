@@ -11,7 +11,6 @@ Hera is the goddess of mothers, marriage and family – she is here to offer sup
 - [TypeScript](https://www.typescriptlang.org/#installation)
 - [Discord API Key](https://discord.com/developers/applications)
 - [Discord Guild](https://support.discord.com/hc/en-us/articles/204849977-How-do-I-create-a-server-)
-- [Channel Category](https://support.discord.com/hc/en-us/articles/115001580171-Channel-Categories-101)
 
 ---
 
