@@ -25,14 +25,14 @@ import DiscordHandler from './internal/DiscordHandler';
 import CommandHandler from './internal/CommandHandler';
 import MessageHandler from './internal/MessageHandler';
 import MessageObject from './interface/MessageObject';
-import { ping } from './commands/example/ping';
-import { setowner } from './commands/hera/setowner';
+import ping from './commands/example/ping';
+import setowner from './commands/hera/setowner';
 import SupportHandler from './SupportHandler';
-import { env } from 'process';
-import { settopic } from './commands/hera/settopic';
-import { support } from './commands/hera/support';
-import { resolve } from './commands/hera/resolve';
 import archive from './commands/hera/archive';
+import settopic from './commands/hera/settopic';
+import support from './commands/hera/support';
+import resolve from './commands/hera/resolve';
+import stall from './commands/hera/stall';
 
 export default class Commands extends InternalCommands {
   private supportHandler: SupportHandler | undefined;
@@ -143,6 +143,23 @@ export default class Commands extends InternalCommands {
               this.supportHandler,
               messageObj
             );
+          }
+        }
+      );
+    this.registerCommand(
+      'stall',
+      'stall',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: stall`);
+        if (this.supportHandler != undefined) {
+          return stall(
+            this.getDiscord(),
+            this.getCommandHandler(),
+            this.supportHandler,
+            messageObj
+          );
         }
       }
     );

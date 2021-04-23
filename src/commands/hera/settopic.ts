@@ -26,7 +26,7 @@ import { TextChannel } from 'discord.js';
 import CommandHandler from '../../internal/CommandHandler';
 import SupportHandler from '../../SupportHandler';
 
-export async function settopic(
+export default async function settopic(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
   supportHandler: SupportHandler,
