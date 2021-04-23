@@ -347,6 +347,7 @@ export default class SupportHandler {
     if (guild) {
       const chan = guild.channels.cache.get(ticket.channel);
       if (chan instanceof TextChannel) {
+        await chan.setName(`${ticket.id}-stalled`);
         let resolveEmbed = {
           embed: {
             color: 8359053,
