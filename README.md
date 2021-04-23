@@ -52,13 +52,14 @@ npm run start
 ```
 DEBUG=1
 AUTO_CLOSE_TICKET=1
+ARCHIVE_ALL_TICKETS=0
 BOT_NAME=Hera
 CMD_PREFIX=^
 API_KEY=somekey
 ICON_URL=https://raw.githubusercontent.com/SeqSEE/Hera/master/defaultIcon.png
 GUILD_ID=123456789
-SUPPORT_CATEGORY=123456789
 SUPER_ADMIN=412122437954830337
+STALL_LIMIT=604800
 ```
 
 ---
@@ -85,4 +86,10 @@ SUPER_ADMIN=412122437954830337
 - usage: ^setowner <user>
   ^settopic - sets the name of a ticket channel
 - usage: ^settopic <topic>
+  ^support - open a support ticket when you are on another channel
+- usage: support
+  ^resolve - show a message that allows to close an already resolved ticket
+- usage: resolve
+   ^archive - archive an ticket
+- usage: archive
 ```
