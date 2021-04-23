@@ -17,31 +17,31 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  */
- import DiscordHandler from '../../internal/DiscordHandler';
- import MessageObject from '../../interface/MessageObject';
- import { Channel, GuildChannel, TextChannel } from 'discord.js';
- import CommandHandler from '../../internal/CommandHandler';
- import SupportHandler from '../../SupportHandler';
- 
- export default async function archive(
-   discord: DiscordHandler,
-   cmdHandler: CommandHandler,
-   supportHandler: SupportHandler,
-   messageObj: MessageObject
- ): Promise<void> {
-   let user = await discord.getClient().users.fetch(messageObj.author);
-   let c = await discord.getClient().channels.fetch(messageObj.channel);
-   let chan: TextChannel | null =
-     c instanceof TextChannel ? (c as TextChannel) : null;
-   if (
-     messageObj.author !== process.env.SUPER_ADMIN &&
-     !cmdHandler.isAdmin(messageObj.author)
-   ) {
-     if (chan) chan.send('Error: Permission Denied');
-     else if (user) user.send('Error: Permission Denied');
-     return;
-   }
-   const ticket = supportHandler.getTicketByChannel(messageObj.channel);
+import DiscordHandler from '../../internal/DiscordHandler';
+import MessageObject from '../../interface/MessageObject';
+import { GuildChannel, TextChannel } from 'discord.js';
+import CommandHandler from '../../internal/CommandHandler';
+import SupportHandler from '../../SupportHandler';
+
+export default async function archive(
+  discord: DiscordHandler,
+  cmdHandler: CommandHandler,
+  supportHandler: SupportHandler,
+  messageObj: MessageObject
+): Promise<void> {
+  let user = await discord.getClient().users.fetch(messageObj.author);
+  let c = await discord.getClient().channels.fetch(messageObj.channel);
+  let chan: TextChannel | null =
+    c instanceof TextChannel ? (c as TextChannel) : null;
+  if (
+    messageObj.author !== process.env.SUPER_ADMIN &&
+    !cmdHandler.isAdmin(messageObj.author)
+  ) {
+    if (chan) chan.send('Error: Permission Denied');
+    else if (user) user.send('Error: Permission Denied');
+    return;
+  }
+  const ticket = supportHandler.getTicketByChannel(messageObj.channel);
   if (ticket) {
     if (chan instanceof GuildChannel) {
       await supportHandler.archiveSupportTicket(
@@ -51,5 +51,3 @@
     }
   }
 }
-
-
