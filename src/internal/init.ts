@@ -70,6 +70,16 @@ export default async function init(
           console.log(`ICON_URL is undefined`);
           process.exit(1);
         };
+      } else if (process.env.STALL_LIMIT == undefined) {
+        s = () => {
+          console.log(`STALL_LIMIT is undefined`);
+          process.exit(1);
+        };
+      } else if (process.env.ARCHIVE_ALL_TICKETS == undefined) {
+        s = () => {
+          console.log(`ARCHIVE_ALL_TICKETS is undefined`);
+          process.exit(1);
+        };
       } else {
         s = start;
 

@@ -24,7 +24,7 @@ import DiscordHandler from '../../internal/DiscordHandler';
 import MessageObject from '../../interface/MessageObject';
 import { TextChannel } from 'discord.js';
 
-export async function ping(
+export default async function ping(
   discord: DiscordHandler,
   messageObj: MessageObject
 ): Promise<void> {

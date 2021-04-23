@@ -26,4 +26,5 @@ export default interface SupportTicket {
   channel: string;
   controlMessage: string;
   lastUpdate: number;
+  stalled?: number;
 }

@@ -26,7 +26,7 @@ import { EmbedFieldData, MessageEmbed, TextChannel } from 'discord.js';
 import CommandHandler from '../../CommandHandler';
 import Command from '../../Command';
 
-export async function help(
+export default async function help(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
   messageObj: MessageObject
@@ -68,9 +68,7 @@ export async function help(
     else if (user) user.send(helpEmbed);
   } else {
     const command = m[1];
-    const cmd: Command | undefined = cmdHandler.getCommand(
-      `${cmdHandler.getCmdPrefix()}${command}`
-    );
+    const cmd: Command | undefined = cmdHandler.getCommand(`${command}`);
     if (cmd) {
       if (chan)
         chan.send(`Usage:\n${cmdHandler.getCmdPrefix()}${cmd.getUsage()}`);

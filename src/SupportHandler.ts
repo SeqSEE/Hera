@@ -342,6 +342,56 @@ export default class SupportHandler {
     return ticket;
   }
 
+  public async stallSupportTicket(ticket: SupportTicket) {
+    const guild = this.client.guilds.cache.get(process.env.GUILD_ID as string);
+    if (guild) {
+      const chan = guild.channels.cache.get(ticket.channel);
+      if (chan instanceof TextChannel) {
+        await chan.setName(`${ticket.id}-stalled`);
+        let resolveEmbed = {
+          embed: {
+            color: 8359053,
+            author: {
+              name: process.env.BOT_NAME as string,
+              icon_url: process.env.ICON_URL as string,
+            },
+            title: `**Issue has been marked as stalled**`,
+            url: '',
+            description: `**Your issue has been marked as stalled and may be archived due to inactivity.\nTo close this ticket react with ❌**`,
+            fields: [],
+            timestamp: new Date(),
+            image: {
+              url: '',
+            },
+            footer: {
+              iconURL: process.env.ICON_URL as string,
+              text: process.env.BOT_NAME as string,
+            },
+          },
+        };
+
+        const resolveMessage = await (chan as TextChannel).send(resolveEmbed);
+        await resolveMessage.react('❌');
+        await resolveMessage.react('📁');
+        const oldMessage = await chan.messages.fetch(
+          ticket.controlMessage,
+          true
+        );
+
+        if (oldMessage) await oldMessage.delete();
+        this.ticketsMap.set(ticket.id, {
+          id: ticket.id,
+          user: ticket.user,
+          channel: ticket.channel,
+          controlMessage: resolveMessage.id,
+          lastUpdate: Math.round(new Date().getTime() / 1000),
+          stalled: Math.round(new Date().getTime() / 1000),
+        });
+        await this.save();
+      }
+    }
+  }
+
   public async resolveSupportTicket(ticket: SupportTicket) {
     const guild = this.client.guilds.cache.get(process.env.GUILD_ID as string);
     if (guild) {
@@ -371,7 +421,11 @@ export default class SupportHandler {
 
         const resolveMessage = await (chan as TextChannel).send(resolveEmbed);
         await resolveMessage.react('❌');
-        const oldMessage = chan.messages.cache.get(ticket.controlMessage);
+        const oldMessage = await chan.messages.fetch(
+          ticket.controlMessage,
+          true
+        );
+
         if (oldMessage) await oldMessage.delete();
         this.ticketsMap.set(ticket.id, {
           id: ticket.id,
@@ -379,6 +433,7 @@ export default class SupportHandler {
           channel: ticket.channel,
           controlMessage: resolveMessage.id,
           lastUpdate: Math.round(new Date().getTime() / 1000),
+          stalled: 0,
         });
         await this.save();
       }
@@ -527,6 +582,7 @@ export default class SupportHandler {
       channel: supportChannel.id,
       controlMessage: introMessage.id,
       lastUpdate: Math.round(new Date().getTime() / 1000),
+      stalled: 0,
     });
     await this.loggingChannel?.send(
       `<@${user.id}> (${user.username}#${user.discriminator}) ${user.id} - Opened support-ticket-${tick}`
@@ -669,6 +725,16 @@ export default class SupportHandler {
       const ticket: SupportTicket | undefined = this.ticketsMap.get(id);
       if (ticket?.channel === messageObj.channel) {
         ticket.lastUpdate = Math.round(new Date().getTime() / 1000);
+        if (ticket.stalled && ticket.stalled > 0) {
+          ticket.stalled = 0;
+          const chan:
+            | GuildChannel
+            | undefined = this.supportChannel?.guild.channels.cache.get(
+            ticket.channel
+          );
+          if (chan && chan.name !== `support-ticket-${ticket.id}`)
+            chan.setName(`support-ticket-${ticket.id}`);
+        }
         this.ticketsMap.set(id, ticket);
         await this.save();
       }
@@ -684,18 +750,45 @@ export default class SupportHandler {
             ticket &&
             Math.round(new Date().getTime() / 1000) - ticket.lastUpdate > 86400
           ) {
-            const chan:
-              | GuildChannel
-              | undefined = this.supportChannel?.guild.channels.cache.get(
-              ticket.channel
-            );
-            if (chan) await chan.delete('Ticket closed due to inactivity');
+            if (
+              ticket.stalled &&
+              ticket.stalled > 0 &&
+              Number(process.env.STALL_LIMIT) > 0
+            ) {
+              if (
+                Math.round(new Date().getTime() / 1000) - ticket.stalled >
+                Number(process.env.STALL_LIMIT)
+              ) {
+                await this.closeTicket(ticket);
+              }
+            } else {
+              await this.stallSupportTicket(ticket);
+            }
           }
         }
       }
     };
     await collector();
     setInterval(async () => await collector(), 900000);
+  }
+
+  private async closeTicket(ticket: SupportTicket) {
+    const chan:
+      | GuildChannel
+      | undefined = this.supportChannel?.guild.channels.cache.get(
+      ticket.channel
+    );
+    if (Number(process.env.ARCHIVE_ALL_TICKETS) === 1) {
+      if (chan) {
+        await this.closeSupportTicket(chan, `Archived %id%`);
+        await chan.setName(`archive-${chan.name}`);
+      }
+    } else {
+      if (chan) {
+        await this.closeSupportTicket(chan, `Closed %id%`);
+        await chan.delete('Ticket closed due to inactivity');
+      }
+    }
   }
 
   private async load(guild: Guild | undefined) {
