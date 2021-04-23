@@ -136,16 +136,16 @@ export default class Commands extends InternalCommands {
           console.log(
             `${Date()} author: ${messageObj.author} command: archive`
           );
-          if (this.supportHandler != undefined) {
-            return archive(
-              this.getDiscord(),
-              this.getCommandHandler(),
-              this.supportHandler,
-              messageObj
-            );
-          }
+        if (this.supportHandler != undefined) {
+          return archive(
+            this.getDiscord(),
+            this.getCommandHandler(),
+            this.supportHandler,
+            messageObj
+          );
         }
-      );
+      }
+    );
     this.registerCommand(
       'stall',
       'stall',
