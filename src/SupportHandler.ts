@@ -725,7 +725,16 @@ export default class SupportHandler {
       const ticket: SupportTicket | undefined = this.ticketsMap.get(id);
       if (ticket?.channel === messageObj.channel) {
         ticket.lastUpdate = Math.round(new Date().getTime() / 1000);
-        if (ticket.stalled && ticket.stalled > 0) ticket.stalled = 0;
+        if (ticket.stalled && ticket.stalled > 0) {
+          ticket.stalled = 0;
+          const chan:
+            | GuildChannel
+            | undefined = this.supportChannel?.guild.channels.cache.get(
+            ticket.channel
+          );
+          if (chan && chan.name !== `support-ticket-${ticket.id}`)
+            chan.setName(`support-ticket-${ticket.id}`);
+        }
         this.ticketsMap.set(id, ticket);
         await this.save();
       }
