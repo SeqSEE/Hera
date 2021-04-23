@@ -85,4 +85,10 @@ SUPER_ADMIN=412122437954830337
 - usage: ^setowner <user>
   ^settopic - sets the name of a ticket channel
 - usage: ^settopic <topic>
+  ^support - open a support ticket when you are on another channel
+- usage: support
+  ^resolve - show a message that allows to close an already resolved ticket
+- usage: resolve
+   ^archive - archive an ticket
+- usage: archive
 ```
