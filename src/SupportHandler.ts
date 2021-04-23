@@ -724,6 +724,7 @@ export default class SupportHandler {
       const ticket: SupportTicket | undefined = this.ticketsMap.get(id);
       if (ticket?.channel === messageObj.channel) {
         ticket.lastUpdate = Math.round(new Date().getTime() / 1000);
+        if (ticket.stalled && ticket.stalled > 0) ticket.stalled = 0;
         this.ticketsMap.set(id, ticket);
         await this.save();
       }
@@ -748,14 +749,10 @@ export default class SupportHandler {
                 Math.round(new Date().getTime() / 1000) - ticket.stalled >
                 Number(process.env.STALL_LIMIT)
               ) {
-                const chan:
-                  | GuildChannel
-                  | undefined = this.supportChannel?.guild.channels.cache.get(
-                  ticket.channel
-                );
-                if (chan) await chan.delete('Ticket closed due to inactivity');
+                await this.closeTicket(ticket);
               }
             } else {
+              await this.stallSupportTicket(ticket);
             }
           }
         }

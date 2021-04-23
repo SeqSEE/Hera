@@ -3,5 +3,14 @@
   "supportChannel": "796098801722064966",
   "supportMessage": "796098861185761312",
   "supportCategory": "795800353815134288",
-  "openTickets": {}
+  "openTickets": {
+    "1": {
+      "id": "1",
+      "user": "290986697242574848",
+      "channel": "834646787452567552",
+      "controlMessage": "834646841739313162",
+      "lastUpdate": 1619120628,
+      "stalled": 0
+    }
+  }
 }
