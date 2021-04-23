@@ -28,6 +28,7 @@ import MessageObject from './interface/MessageObject';
 import ping from './commands/example/ping';
 import setowner from './commands/hera/setowner';
 import SupportHandler from './SupportHandler';
+import archive from './commands/hera/archive';
 import settopic from './commands/hera/settopic';
 import support from './commands/hera/support';
 import resolve from './commands/hera/resolve';
@@ -126,6 +127,25 @@ export default class Commands extends InternalCommands {
         }
       }
     );
+    this.registerCommand(
+      'archive',
+      'archive',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(
+            `${Date()} author: ${messageObj.author} command: archive`
+          );
+          if (this.supportHandler != undefined) {
+            return archive(
+              this.getDiscord(),
+              this.getCommandHandler(),
+              this.supportHandler,
+              messageObj
+            );
+          }
+        }
+      );
     this.registerCommand(
       'stall',
       'stall',
