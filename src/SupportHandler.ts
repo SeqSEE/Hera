@@ -384,7 +384,7 @@ export default class SupportHandler {
           user: ticket.user,
           channel: ticket.channel,
           controlMessage: resolveMessage.id,
-          lastUpdate: Math.round(new Date().getTime() / 1000),
+          lastUpdate: ticket.lastUpdate,
           stalled: Math.round(new Date().getTime() / 1000),
         });
         await this.save();
