@@ -3,22 +3,5 @@
   "supportChannel": "796098801722064966",
   "supportMessage": "796098861185761312",
   "supportCategory": "795800353815134288",
-  "openTickets": {
-    "1": {
-      "id": "1",
-      "user": "290986697242574848",
-      "channel": "834646787452567552",
-      "controlMessage": "835242004689584149",
-      "lastUpdate": 1619207603,
-      "stalled": 1619207603
-    },
-    "3": {
-      "id": "3",
-      "user": "412122437954830337",
-      "channel": "835020491776327720",
-      "controlMessage": "835385454907097138",
-      "lastUpdate": 1619241803,
-      "stalled": 1619241803
-    }
-  }
+  "openTickets": {}
 }
